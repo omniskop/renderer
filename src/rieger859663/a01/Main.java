@@ -18,7 +18,7 @@ public class Main {
             }
         }
 
-        String filename = "../doc/a01-background.png";
+        String filename = "../doc/a01-checkerboard.png";
         try {
             image.write(filename);
             System.out.println("Wrote image: " + filename);
@@ -28,6 +28,10 @@ public class Main {
     }
 
     static Vec3 pixelColor(int x, int y) {
-        return vec3((double) x / width,1 - (double) x / width, 0);
+        if(((x / 10) % 2 == 0) ^ ((y / 10) % 2 == 0)) {
+            return vec3(0,0,1);
+        } else {
+            return vec3((double) x / width,1 - (double) x / width, 0);
+        }
     }
 }
