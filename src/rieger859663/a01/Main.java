@@ -3,7 +3,7 @@ package rieger859663.a01;
 import cgtools.Vec3;
 import static cgtools.Vec3.*;
 import java.io.IOException;
-import tramberend7215.Image;
+import rieger859663.Image;
 
 public class Main {
     static int width = 160;
