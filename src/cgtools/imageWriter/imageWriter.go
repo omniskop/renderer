@@ -5,7 +5,10 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"math"
 )
+
+const gamma = 2.2
 
 type imageWriter struct{
     width   int
@@ -21,9 +24,9 @@ func New(data []float64, width int, height int) imageWriter {
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			img.Set(x, y, color.RGBA{
-				R: uint8(data[(y * width + x) * 3    ] * 255),
-				G: uint8(data[(y * width + x) * 3 + 1] * 255),
-				B: uint8(data[(y * width + x) * 3 + 2] * 255),
+				R: processColor(data[(y * width + x) * 3    ]),
+				G: processColor(data[(y * width + x) * 3 + 1]),
+				B: processColor(data[(y * width + x) * 3 + 2]),
 				A: 255,
 			})
 		}
@@ -55,3 +58,21 @@ func (iw imageWriter) Write(filename string) error {
     // }
     return nil
 }
+
+func processColor(value float64) uint8 {
+	//Apply gamma
+	value = math.Pow( value, 1 / gamma )
+	
+	return uint8( math.Floor( value * 255 ) )
+}
+
+
+
+
+
+
+
+
+
+
+

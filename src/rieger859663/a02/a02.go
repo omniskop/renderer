@@ -31,7 +31,7 @@ func main() {
         }
     }
         
-    err := img.Write("doc/a02/a02-disks.png")
+    err := img.Write("doc/a02/a02-gamma.png")
     if err != nil {
         log.Print("An error occoured while writing the file.")
         log.Fatal( err )
