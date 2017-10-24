@@ -12,7 +12,8 @@ import (
 
 const width int = 160
 const height int = 90
-var backgroundColor = vec3.Vec3{1,1,1}
+const supersamplingPoints = 10
+var backgroundColor = vec3.White
 var circles = make([]circle.Circle, 20);
 
 func main() {    
@@ -31,7 +32,7 @@ func main() {
         }
     }
         
-    err := img.Write("doc/a02/a02-gamma.png")
+    err := img.Write("doc/a02/a02-super-sampling.png")
     if err != nil {
         log.Print("An error occoured while writing the file.")
         log.Fatal( err )
@@ -40,18 +41,41 @@ func main() {
     }
 }
 
-func pixelColor(x int, y int) vec3.Vec3 {
-    for _, c := range circles {
-        if distance(x, y, c.Pos.X, c.Pos.Y) < c.Radius {
-            return c.Color
+func pixelColor(pX int, pY int) vec3.Vec3 {
+    color := vec3.Vec3{0,0,0}
+    for x := 0; x < supersamplingPoints;x++ {
+        for y := 0; y < supersamplingPoints;y++ {
+            for _, c := range circles {
+                if checkSubpixel(pX, pY, x, y, c) {
+                    color.Add(c.Color)
+                    goto noBackground
+                }
+            }
+            color.Add(backgroundColor)
+            noBackground:
         }
     }
-    return backgroundColor
+
+    color.Divide( supersamplingPoints * supersamplingPoints )
+
+    return color
 }
 
-func distance(ax, ay, bx, by int) int {
-    return int( math.Sqrt( math.Pow( float64(ax - bx), 2) + math.Pow( float64(ay - by), 2) ) )
+func checkSubpixel(pX, pY, x, y int, c circle.Circle) bool {
+    return distance(
+        float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
+        float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
+        float64(c.Pos.X),
+        float64(c.Pos.Y),
+    ) < float64(c.Radius)
 }
+
+func distance(ax, ay, bx, by float64) float64 {
+    return math.Sqrt( math.Pow( ax - bx, 2) + math.Pow( ay - by, 2) )
+}
+
+
+
 
 
 
