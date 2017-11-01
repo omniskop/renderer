@@ -1,9 +1,9 @@
 package sphere
 
 import (
-    "cgtools/vec3"
-    "cgtools/ray"
-    "cgtools/hit"
+    "customtools/vec3"
+    "customtools/ray"
+    "customtools/hit"
     "math"
 )
 

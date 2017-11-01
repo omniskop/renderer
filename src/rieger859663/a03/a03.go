@@ -5,10 +5,10 @@ import (
     "log"
     "math"
     "cgtools/image"
-    "cgtools/vec3"
-    "cgtools/sphere"
-    "cgtools/camera"
-    "cgtools/hit"
+    "customtools/vec3"
+    "customtools/sphere"
+    "customtools/camera"
+    "customtools/hit"
 )
 
 const width int = 1000
@@ -17,7 +17,7 @@ const supersamplingPoints = 10
 var backgroundColor = vec3.Black
 // var spheres = make([]circle.Circle, 20);
 var spheres = make([]sphere.Sphere, 1);
-var cam = camera.Camera{
+var cam = camera.PinholeCamera{
     OpeningAngle: math.Pi / 16,
     Width: width,
     Height: height,

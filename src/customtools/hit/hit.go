@@ -1,8 +1,8 @@
 package hit
 
 import (
-    "cgtools/vec3"
-    "cgtools/ray"
+    "customtools/vec3"
+    "customtools/ray"
 )
 
 type Hit struct {

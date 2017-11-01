@@ -1,7 +1,7 @@
 package image
 
 import (
-    "cgtools/vec3"
+    "customtools/vec3"
     "cgtools/imageWriter"
     "math"
 )

@@ -1,7 +1,7 @@
 package ray
 
 import (
-    "cgtools/vec3"
+    "customtools/vec3"
 )
 
 type Ray struct {
