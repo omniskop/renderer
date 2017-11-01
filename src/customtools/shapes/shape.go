@@ -5,6 +5,6 @@ import (
     "customtools/ray"
 )
 
-type shape interface {
+type Shape interface {
     Intersect(r ray.Ray) *hit.Hit
 }

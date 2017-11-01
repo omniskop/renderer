@@ -2,11 +2,11 @@ package hit
 
 import (
     "customtools/vec3"
-    "customtools/ray"
 )
 
 type Hit struct {
-    T           ray.Ray
+    T           float64
     Position    vec3.Vec3
     Normal      vec3.Vec3
+    Color       vec3.Vec3
 }

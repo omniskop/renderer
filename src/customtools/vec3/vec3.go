@@ -12,6 +12,8 @@ var Red = Vec3{1,0,0}
 var Unit = Vec3{1,1,1}
 var One = Vec3{1,1,1}
 var Zero = Vec3{0,0,0} 
+var Grey = Vec3{.5,.5,.5}
+var Inf = Vec3{math.Inf(1), math.Inf(1), math.Inf(1)}
 
 type Vec3 struct {
     X   float64

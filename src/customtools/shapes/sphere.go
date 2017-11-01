@@ -9,7 +9,8 @@ import (
 
 type Sphere struct {
     Position    vec3.Vec3
-    Radius      int
+    Radius      float64
+    Color       vec3.Vec3
 }
 
 func (s Sphere) Intersect(r ray.Ray) *hit.Hit {
@@ -22,7 +23,7 @@ func (s Sphere) Intersect(r ray.Ray) *hit.Hit {
     
     a := vec3.DotProduct(r.Direction, r.Direction)
     b := 2 * vec3.DotProduct(newOrigin, r.Direction)
-    c := vec3.DotProduct(newOrigin, newOrigin) - float64(s.Radius * s.Radius)
+    c := vec3.DotProduct(newOrigin, newOrigin) - s.Radius * s.Radius
     
     var offset float64
     
@@ -70,8 +71,9 @@ func (s Sphere) Intersect(r ray.Ray) *hit.Hit {
     point := r.PointAt(offset)
     
     return &hit.Hit{
-        T: r,
+        T: offset,
         Position: point,
-        Normal: vec3.Divide( vec3.Subtract(point, s.Position), float64(s.Radius) ),
+        Normal: vec3.Divide( vec3.Subtract(point, s.Position), s.Radius ),
+        Color: s.Color,
     }
 }

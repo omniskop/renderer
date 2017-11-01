@@ -3,7 +3,6 @@ package image
 import (
     "customtools/vec3"
     "cgtools/imageWriter"
-    "math"
 )
 
 const gamma = 2.2
@@ -14,8 +13,8 @@ type Image struct {
     imageData []float64
 }
 
-func New(w int, h int) *Image {
-    return &Image{
+func New(w int, h int) Image {
+    return Image{
         width: w,
         height: h,
         imageData: make([]float64,w * h * 3),
@@ -29,15 +28,7 @@ func (img *Image) SetPixel(x int, y int, color vec3.Vec3) {
 }
 
 func (img *Image) Write(filename string) error {
-    writer := imageWriter.New( img.processImageData() , img.width, img.height)
+    writer := imageWriter.New( img.imageData , img.width, img.height)
     return writer.Write(filename);
 }
 
-func (i Image) processImageData() []float64 {
-    out := make([]float64, i.width * i.height * 3)
-    for i,v := range i.imageData {
-        //Apply Gamma
-        out[i] = math.Pow( v, 1 / gamma )
-    }
-    return out;
-}
