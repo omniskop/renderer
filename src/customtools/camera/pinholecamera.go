@@ -12,10 +12,10 @@ type PinholeCamera struct {
     Height          int
 }
 
-func (c PinholeCamera) GetRayForPixel(x int, y int) ray.Ray {
+func (c PinholeCamera) GetRayForPixel(x float64, y float64) ray.Ray {
     out := ray.Ray{Origin: vec3.Zero, Direction: vec3.Vec3{
-        X: float64(x) - float64(c.Width) / 2,
-        Y: float64(c.Height / 2) - float64(y),
+        X: x - float64(c.Width) / 2,
+        Y: float64(c.Height / 2) - y,
         Z: -(float64(c.Width) / 2) / math.Tan( c.OpeningAngle / 2 ),
     }}
     
