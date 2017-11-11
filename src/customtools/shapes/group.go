@@ -1,7 +1,6 @@
 package shapes
 
 import (
-    "customtools/hit"
     "customtools/ray"
 )
 
@@ -9,10 +8,10 @@ type Group struct {
     Shapes      []Shape
 }
 
-func (this Group) Intersect(r ray.Ray) *hit.Hit {
+func (this Group) Intersect(r ray.Ray) *Hit {
     
-    var closestHit *hit.Hit
-    var h *hit.Hit
+    var closestHit *Hit
+    var h *Hit
     
     for _,shape := range this.Shapes {
         h = shape.Intersect(r)
