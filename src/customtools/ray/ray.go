@@ -7,6 +7,8 @@ import (
 type Ray struct {
     Origin  vec3.Vec3
     Direction vec3.Vec3
+    T0          float64
+    T1          float64
 }
 
 func (r Ray) PointAt(t float64) vec3.Vec3 {

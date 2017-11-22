@@ -52,6 +52,8 @@ func (s Sphere) Intersect(r ray.Ray) *Hit {
                 b * b - 4 * a * c,
             )) /
             2 * a
+        t1 += 0.000000001
+        t2 += 0.000000001
         if t1 < 0 {
             if t2 < 0 {
                 return nil

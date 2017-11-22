@@ -15,7 +15,7 @@ type Plane struct {
 func (this Plane) Intersect(r ray.Ray) *Hit {
     t := vec3.DotProduct(vec3.Subtract(this.Position, r.Origin), this.Normal) / vec3.DotProduct(r.Direction, this.Normal)
     
-    if math.IsNaN(t) || t <= 0 {
+    if math.IsNaN(t) || t < r.T0 || t > r.T1 {
         return nil
     }
     

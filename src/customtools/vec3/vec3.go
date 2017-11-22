@@ -21,6 +21,10 @@ type Vec3 struct {
     Z   float64
 }
 
+func New(x,y,z float64) Vec3 {
+    return Vec3{x,y,z}
+}
+
 func (v Vec3) Length() float64 {
     return math.Sqrt( v.X * v.X + v.Y * v.Y + v.Z * v.Z )
 }

@@ -5,8 +5,6 @@ import (
     "log"
     "fmt"
     "math"
-    "sync"
-    "runtime"
     "time"
     "cgtools/random"
     "cgtools/image"
@@ -18,9 +16,7 @@ import (
 
 var startTime time.Time;
 
-func main() {
-    runtime.GOMAXPROCS(runtime.NumCPU())
-    
+func main() {    
     startTime = time.Now()
     random.InitSeed();
     
@@ -46,19 +42,19 @@ func main() {
                 Normal: vec3.Vec3{0,1,0},
                 Material: shapes.Material_Diffuse{vec3.Grey},
             },
-            shapes.Background{shapes.Material_Sky{vec3.White}},
+            shapes.Background{shapes.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
         },
     }
     
     img := raytrace(
         camera.PinholeCamera{
             OpeningAngle: math.Pi / 13,
-            Width: 1000,
-            Height: 1000,
+            Width: 400,
+            Height: 400,
         },
         world,
         200,
-        4,
+        10,
     )
     log.Print("Rendering took ", time.Since(startTime))
         
@@ -88,74 +84,17 @@ func raytrace(cam camera.PinholeCamera, shapes shapes.Group, sPoints, depth int)
                     2.2,
                 ),
             )
-            // go func(px,py int){
-            //     defer wg.Done()
-            //     // img.SetPixel(
-            //     //     px, 
-            //     //     py,
-            //     //     processColor(
-            //     //         getColorForPixel(shapes, cam, x, y, pointPerPixelAxis),
-            //     //         2.2,
-            //     //     ),
-            //     // )
-            //     dataChannel <- PixelInformation{
-            //         px,
-            //         py,
-            //         processColor(
-            //             getColorForPixel(shapes, cam, px, py, pointPerPixelAxis, depth),
-            //             2.2,
-            //         ),
-            //     }
-            // }(x,y)
         }
         percent := (float64(x) / float64(cam.Width)) * 100
         if percent == math.Trunc(percent) {
             fmt.Printf("\rRendering... %d%%", int(percent))
         }
     }
-    
-    // go func() {
-    //     i := 0
-    //     for val := range dataChannel {
-    //         img.SetPixel(
-    //             val.X,
-    //             val.Y,
-    //             val.Color,
-    //         )
-    //         i++
-    //         percent := (float64(i) / float64(cam.Width * cam.Height)) * 100
-    //         if percent == math.Trunc(percent) {
-    //             fmt.Printf("\rRendering... %d%%", int(percent))
-    //         }
-    //     }
-    // }()
-    // 
-    // wg.Wait();
 
     
     fmt.Printf("\n")
 
     return img
-}
-
-func SetPixel(x,y int ,waitGroup *sync.WaitGroup,dataChannel *chan PixelInformation, shapes shapes.Shape, cam camera.PinholeCamera, pointPerPixelAxis, depth int)  {
-    // img.SetPixel(
-    //     x, 
-    //     y,
-    //     processColor(
-    //         getColorForPixel(shapes, cam, x, y, pointPerPixelAxis),
-    //         2.2,
-    //     ),
-    // )
-    defer waitGroup.Done()
-    *dataChannel <- PixelInformation{
-        x,
-        y,
-        processColor(
-            getColorForPixel(shapes, cam, x, y, pointPerPixelAxis, depth),
-            2.2,
-        ),
-    }
 }
 
 func getColorForPixel(shapes shapes.Shape, cam camera.PinholeCamera,pX, pY, supersamplingPoints, depth int) vec3.Vec3 {
