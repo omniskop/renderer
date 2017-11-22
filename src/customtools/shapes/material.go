@@ -27,7 +27,7 @@ type Material interface {
 
 /*  ======  DIFFUSE  ====== */
 
-type Material_Diffuse struct { // Lambertsches Material
+type Material_Diffuse struct {
     Color       vec3.Vec3
 }
 
@@ -46,7 +46,7 @@ func (this Material_Diffuse) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
 
 /*  ====== WHITELIGHT ======  */
 
-type Material_WhiteLight struct { // Lambertsches Material
+type Material_WhiteLight struct {
     Color       vec3.Vec3
 }
 
@@ -63,9 +63,41 @@ func (this Material_WhiteLight) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
 
+/*  ====== MIRROR ======  */
+
+type Material_Mirror struct {
+    Color   vec3.Vec3
+}
+
+func (this Material_Mirror) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
+    return vec3.Zero
+}
+
+func (this Material_Mirror) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
+    n := h.Normal
+    p := h.Position
+    P := vec3.Subtract(p, r.Direction)
+    
+    t := (vec3.DotProduct(n, P) - n.X*p.X - n.Y*p.Y - n.Z*p.Z) / vec3.DotProduct(n,n)
+    
+    
+    M := vec3.Add(p, vec3.Multiply(t, n))
+    
+    
+    Q := vec3.Add(P, vec3.Multiply(2,  vec3.Subtract(M, P)   ))
+    
+    N := vec3.Normalize(vec3.Subtract(Q, p))
+    
+    return &ray.Ray{ vec3.Add(h.Position, vec3.Divide(N, 1000)), N, 0.000001, math.Inf(1)}
+}
+
+func (this Material_Mirror) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
+    return this.Color
+}
+
 /*  ====== SKY ======  */
 
-type Material_Sky struct { // Lambertsches Material
+type Material_Sky struct {
     Color       vec3.Vec3
 }
 

@@ -23,22 +23,27 @@ func main() {
     world := shapes.Group{
         []shapes.Shape{
             shapes.Sphere{
-                Position: vec3.Vec3{0,-0.1,-11.2},
+                Position: vec3.Vec3{0,-0.4,-11.2},
                 Material: shapes.Material_Diffuse{vec3.Red},
                 Radius: 1,
             },
             shapes.Sphere{
-                Position: vec3.Vec3{-.7,-.7,-10.7},
+                Position: vec3.Vec3{-.7,-1,-10.7},
                 Material: shapes.Material_Diffuse{vec3.Blue},
                 Radius: .5,
             },
             shapes.Sphere{
-                Position: vec3.Vec3{.7,-.7,-10.7},
+                Position: vec3.Vec3{.7,-1,-10.7},
                 Material: shapes.Material_Diffuse{vec3.Blue},
                 Radius: .5,
             },
+            shapes.Sphere{
+                Position: vec3.Vec3{0,10.7,-11.2},
+                Material: shapes.Material_Mirror{vec3.White},
+                Radius: 10,
+            },
             shapes.Plane{
-                Position: vec3.Vec3{0,-1,0},
+                Position: vec3.Vec3{0,-1.3,0},
                 Normal: vec3.Vec3{0,1,0},
                 Material: shapes.Material_Diffuse{vec3.Grey},
             },
@@ -48,9 +53,9 @@ func main() {
     
     img := raytrace(
         camera.PinholeCamera{
-            OpeningAngle: math.Pi / 13,
-            Width: 400,
-            Height: 400,
+            OpeningAngle: math.Pi / 11,
+            Width: 1000,
+            Height: 1000,
         },
         world,
         200,
