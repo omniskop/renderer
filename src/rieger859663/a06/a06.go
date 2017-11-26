@@ -12,6 +12,7 @@ import (
     "customtools/shapes"
     "customtools/camera"
     "customtools/ray"
+    _"scenes"
 )
 
 var startTime time.Time;
@@ -20,32 +21,42 @@ func main() {
     startTime = time.Now()
     random.InitSeed();
     
-    world := shapes.Group{
+    // world := scenes.GetWaterMolecule()
+    
+    world := shapes.Group {
         []shapes.Shape{
-            shapes.Sphere{
-                Position: vec3.Vec3{0,-0.4,-11.2},
-                Material: shapes.Material_Diffuse{vec3.Red},
-                Radius: 1,
-            },
-            shapes.Sphere{
-                Position: vec3.Vec3{-.7,-1,-10.7},
-                Material: shapes.Material_Diffuse{vec3.Blue},
-                Radius: .5,
-            },
-            shapes.Sphere{
-                Position: vec3.Vec3{.7,-1,-10.7},
-                Material: shapes.Material_Diffuse{vec3.Blue},
-                Radius: .5,
-            },
-            shapes.Sphere{
-                Position: vec3.Vec3{0,10.7,-11.2},
-                Material: shapes.Metarial_Metal{vec3.White},
-                Radius: 10,
-            },
-            shapes.Plane{
+            shapes.NewCylinder(
+                vec3.Vec3{0,-1.3,-5},
+                vec3.Normalize(vec3.Vec3{0,1,0}),
+                1,
+                2,
+                shapes.Material_Metal{vec3.White, 0},
+            ),
+            shapes.NewCylinder(
+                vec3.Vec3{-1,-1.3,-8},
+                vec3.Normalize(vec3.Vec3{-1,1,-1}),
+                0.5,
+                2,
+                shapes.Material_Diffuse{vec3.Red},
+            ),
+            shapes.NewCylinder(
+                vec3.Vec3{1,-1.3,-8},
+                vec3.Normalize(vec3.Vec3{1,1,-1}),
+                0.5,
+                2,
+                shapes.Material_Diffuse{vec3.Red},
+            ),
+            shapes.NewCylinder(
+                vec3.Vec3{0,-1.3,-3},
+                vec3.Normalize(vec3.Vec3{0,1,0}),
+                0.5,
+                0.3,
+                shapes.Material_Diffuse{vec3.Vec3{0.25,0.75,1}},
+            ),
+            shapes.Plane{ // bottom
                 Position: vec3.Vec3{0,-1.3,0},
                 Normal: vec3.Vec3{0,1,0},
-                Material: shapes.Material_Diffuse{vec3.Grey},
+                Material: shapes.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
             },
             shapes.Background{shapes.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
         },
@@ -53,9 +64,11 @@ func main() {
     
     img := raytrace(
         camera.PinholeCamera{
-            OpeningAngle: math.Pi / 11,
-            Width: 1000,
-            Height: 1000,
+            Position: vec3.Vec3{0,2,7},
+            Direction: vec3.Normalize(vec3.Vec3{0,-0.15,-1}),
+            OpeningAngle: math.Pi / 9,
+            Width: 500,
+            Height: 500,
         },
         world,
         200,
@@ -63,7 +76,7 @@ func main() {
     )
     log.Print("Rendering took ", time.Since(startTime))
         
-    err := img.Write("doc/a05-diffuse-spheres.png")
+    err := img.Write("doc/a06-disc.png")
     if err != nil {
         log.Print("An error occoured while writing the file.")
         log.Fatal( err )
@@ -75,10 +88,6 @@ func main() {
 func raytrace(cam camera.PinholeCamera, shapes shapes.Group, sPoints, depth int) image.Image {
     img := image.New(cam.Width, cam.Height)
     pointPerPixelAxis := int(math.Sqrt(float64(sPoints)))
-    // var wg sync.WaitGroup
-    // dataChannel := make(chan PixelInformation, cam.Width * cam.Height)
-    // 
-    // wg.Add(cam.Width * cam.Height)
     for x := 0; x < cam.Width;x++ {
         for y := 0; y < cam.Height;y++ {
             img.SetPixel(
@@ -107,20 +116,11 @@ func getColorForPixel(shapes shapes.Shape, cam camera.PinholeCamera,pX, pY, supe
     for x := 0; x < supersamplingPoints;x++ {
         for y := 0; y < supersamplingPoints;y++ {
             pixelRay := cam.GetRayForPixel(
-                // float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
-                // float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
-                float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
-                float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
+                float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
+                float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
+                // float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
+                // float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
             )
-            /*closestHit := shapes.Intersect(pixelRay)
-            
-            if closestHit == nil {
-                color.Add(vec3.Black)
-                log.Print("Warning: No background present.")
-            } else {
-                color.Add(closestHit.Material.Albedo(pixelRay, *closestHit));
-                // color.Add(vec3.Red)
-            }*/
             
             c := calculateRadiance(shapes, pixelRay, depth)
             color.Add(c)

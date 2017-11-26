@@ -131,6 +131,26 @@ func Normalize(a Vec3) Vec3 {
     return Divide(a, a.Length())
 }
 
+func Project(a,b vec3.Vec3) vec3.Vec3 {
+    c := vec3.Normalize(b)
+    return vec3.Multiply( vec3.DotProduct(a, c),c)
+}
+
+func ProjectOnNormalized(a,b Vec3) Vec3 {
+    return Multiply( DotProduct(a, b),b)
+}
+
+func Reject(a,b Vec3) Vec3 {
+    return Subtract(
+        a,
+        Multiply(
+            vec3.DotProduct(a,b) /
+            vec3.DotProduct(b,b) ,
+            b,
+        ),
+    )
+}
+
 func Clamp(v Vec3) Vec3 {
     return Vec3{math.Min(1, math.Max(v.X,0)), math.Min(1, math.Max(v.Y, 0)), math.Min(1, math.Max(v.Z, 0))}
 }

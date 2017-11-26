@@ -4,6 +4,7 @@ import (
     "customtools/vec3"
     "customtools/ray"
     "math"
+    "log"
 )
 
 type Sphere struct {
@@ -52,16 +53,14 @@ func (s Sphere) Intersect(r ray.Ray) *Hit {
                 b * b - 4 * a * c,
             )) /
             2 * a
-        t1 += 0.000000001
-        t2 += 0.000000001
-        if t1 < 0 {
-            if t2 < 0 {
+        if t1 < r.T0 || t1 > r.T1 {
+            if t2 < r.T0 || t2 > r.T1 {
                 return nil
             } else {
                 offset = t2
             }
         } else {
-            if t2 < 0 {
+            if t2 < r.T0 || t2 > r.T1 {
                 offset = t1
             } else {
                 offset = math.Min(t1, t2)
@@ -70,6 +69,10 @@ func (s Sphere) Intersect(r ray.Ray) *Hit {
     }
         
     point := r.PointAt(offset)
+    
+    if math.Abs(vec3.Subtract(point, s.Position).Length() - s.Radius) > 0.000000001 {
+        log.Print("fuck of ", offset, " ",vec3.Subtract(point, s.Position).Length() )
+    }
     
     return &Hit{
         T: offset,

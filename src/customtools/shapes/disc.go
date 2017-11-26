@@ -1,21 +1,22 @@
 package shapes
 
 import (
-    "math"
     "customtools/vec3"
     "customtools/ray"
+    "math"
 )
 
-type Plane struct {
+type Disc struct {
     Position    vec3.Vec3
-    Normal      vec3.Vec3
+    Normal   vec3.Vec3
+    Radius      float64
     Material    Material
 }
 
-func (this Plane) Intersect(r ray.Ray) *Hit {
+func (this Disc) Intersect(r ray.Ray) *Hit {
     t := vec3.DotProduct(vec3.Subtract(this.Position, r.Origin), this.Normal) / vec3.DotProduct(r.Direction, this.Normal)
     
-    if math.IsNaN(t) || t < r.T0 || t > r.T1 {
+    if math.IsNaN(t) || t < r.T0 || t > r.T1 || vec3.Subtract(r.PointAt(t), this.Position).Length() > this.Radius {
         return nil
     }
     
