@@ -4,7 +4,6 @@ import (
     "customtools/vec3"
     "customtools/ray"
     "math"
-    "log"
 )
 
 type Sphere struct {
@@ -70,9 +69,9 @@ func (s Sphere) Intersect(r ray.Ray) *Hit {
         
     point := r.PointAt(offset)
     
-    if math.Abs(vec3.Subtract(point, s.Position).Length() - s.Radius) > 0.000000001 {
-        log.Print("fuck of ", offset, " ",vec3.Subtract(point, s.Position).Length() )
-    }
+    // if math.Abs(vec3.Subtract(point, s.Position).Length() - s.Radius) > 0.000000001 {
+    //     log.Print("error (ray.Direction normalized?) ", offset, " ",vec3.Subtract(point, s.Position).Length() )
+    // }
     
     return &Hit{
         T: offset,

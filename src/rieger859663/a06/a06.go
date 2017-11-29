@@ -6,13 +6,15 @@ import (
     "fmt"
     "math"
     "time"
+    "runtime"
+    "sync"
     "cgtools/random"
     "cgtools/image"
     "customtools/vec3"
     "customtools/shapes"
     "customtools/camera"
     "customtools/ray"
-    _"scenes"
+    "scenes"
 )
 
 var startTime time.Time;
@@ -22,61 +24,72 @@ func main() {
     random.InitSeed();
     
     // world := scenes.GetWaterMolecule()
+    // sceneCamera := scenes.GetDnaSceneCamera()
+    sceneCamera := scenes.GetCylinderSceneCamera()
     
-    world := shapes.Group {
-        []shapes.Shape{
-            shapes.NewCylinder(
-                vec3.Vec3{0,-1.3,-5},
-                vec3.Normalize(vec3.Vec3{0,1,0}),
-                1,
-                2,
-                shapes.Material_Metal{vec3.White, 0},
-            ),
-            shapes.NewCylinder(
-                vec3.Vec3{-1,-1.3,-8},
-                vec3.Normalize(vec3.Vec3{-1,1,-1}),
-                0.5,
-                2,
-                shapes.Material_Diffuse{vec3.Red},
-            ),
-            shapes.NewCylinder(
-                vec3.Vec3{1,-1.3,-8},
-                vec3.Normalize(vec3.Vec3{1,1,-1}),
-                0.5,
-                2,
-                shapes.Material_Diffuse{vec3.Red},
-            ),
-            shapes.NewCylinder(
-                vec3.Vec3{0,-1.3,-3},
-                vec3.Normalize(vec3.Vec3{0,1,0}),
-                0.5,
-                0.3,
-                shapes.Material_Diffuse{vec3.Vec3{0.25,0.75,1}},
-            ),
-            shapes.Plane{ // bottom
-                Position: vec3.Vec3{0,-1.3,0},
-                Normal: vec3.Vec3{0,1,0},
-                Material: shapes.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
-            },
-            shapes.Background{shapes.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
-        },
-    }
+    // img := raytrace(
+    //     camera.PinholeCamera{
+    //         Position: sceneCamera.GetPosition(),
+    //         Direction: sceneCamera.GetDirection(),
+    //         OpeningAngle: sceneCamera.GetOpeningAngle(),
+    //         Width: 500,
+    //         Height: 500,
+    //     },
+    //     scenes.GetDnaScene(),
+    //     8,
+    //     20,
+    // )
     
-    img := raytrace(
+    img := multithreadMagic(
         camera.PinholeCamera{
-            Position: vec3.Vec3{0,2,7},
-            Direction: vec3.Normalize(vec3.Vec3{0,-0.15,-1}),
-            OpeningAngle: math.Pi / 9,
-            Width: 500,
-            Height: 500,
+            Position: sceneCamera.GetPosition(),
+            Direction: sceneCamera.GetDirection(),
+            OpeningAngle: sceneCamera.GetOpeningAngle(),
+            Width: 1000,
+            Height: 1000,
         },
-        world,
-        200,
-        10,
+        scenes.GetCylinderScene(),
+        300,
+        30,
     )
+    
+    
+    
+    // img := multithreadMagic(
+    //     camera.PinholeCamera{
+    //             Position: vec3.Vec3{0,0,0},
+    //             Direction: vec3.Normalize(vec3.Vec3{0,0,-1}),
+    //             OpeningAngle: math.Pi / 12,
+    //             Width: 300,
+    //             Height: 300,
+    //         },
+    //         shapes.Group{
+    //             []shapes.Shape{
+    //                 shapes.Plane{
+    //                     vec3.Vec3{0,-1,0},
+    //                     vec3.Vec3{0,1,0},
+    //                     shapes.Material_Diffuse_Checkerboard{1,vec3.Vec3{1,1,1}, vec3.Vec3{0,0,0}},
+    //                 },
+    //                 // shapes.Plane{
+    //                 //     vec3.Vec3{0,0,-1},
+    //                 //     vec3.Vec3{0,0,1},
+    //                 //     shapes.Material_Diffuse_Checkerboard{1,vec3.Vec3{1,1,1}, vec3.Vec3{0,0,0}},
+    //                 // },
+    //                 // shapes.Sphere{
+    //                 //     vec3.Vec3{0,-1,-1},
+    //                 //     0.1,
+    //                 //     shapes.Material_Diffuse{vec3.Vec3{1,0,0}},
+    //                 // },
+    //                 shapes.Background{shapes.Material_Sky{vec3.White}},
+    //             },
+    //         },
+    //         40,
+    //         20,
+    // )
+    
     log.Print("Rendering took ", time.Since(startTime))
         
-    err := img.Write("doc/a06-disc.png")
+    err := img.Write("doc/a06-dna.png")
     if err != nil {
         log.Print("An error occoured while writing the file.")
         log.Fatal( err )
@@ -85,21 +98,70 @@ func main() {
     }
 }
 
-func raytrace(cam camera.PinholeCamera, shapes shapes.Group, sPoints, depth int) image.Image {
-    img := image.New(cam.Width, cam.Height)
+func multithreadMagic(cam camera.Camera, scene shapes.Shape, supersamplingPoints , depth int) image.Image {
+    // threads := runtime.NumCPU()
+    threads := 100
+    runtime.GOMAXPROCS(threads)
+    log.Print(threads, " threads")
+    
+    samplingPointsPerThread := supersamplingPoints / threads
+    log.Print(samplingPointsPerThread * threads, " sampling points")
+    log.Print(samplingPointsPerThread, " sampling points per thread")
+    
+    images := make([]image.Image,threads)
+    
+    var wg sync.WaitGroup
+    channel := make(chan image.Image)
+    
+    for i := 0;i < threads;i++ {
+        wg.Add(1)
+        go renderThread(&wg,channel, cam, scene, samplingPointsPerThread, depth)
+    }
+    
+    for i := 0;i < threads;i++ {
+        images[i] = <- channel
+    }
+    
+    wg.Wait()
+    
+    finalImage := image.New(cam.GetWidth(), cam.GetHeight())
+    
+    threadsFloat := float64(threads)
+    for x:= 0;x < cam.GetWidth();x++ {
+        for y := 0; y < cam.GetHeight();y++ {
+            color := vec3.Black
+            for _, img := range images {
+                color.Add(img.GetPixel(x,y))
+            }
+            finalImage.SetPixel(x,y, processColor(vec3.Divide(color, threadsFloat),2.2) )
+        }
+    }    
+    
+    return finalImage
+}
+
+func renderThread(wg *sync.WaitGroup, out chan image.Image,cam camera.Camera, scene shapes.Shape, sPoints, depth int) {
+    img := raytrace(cam, scene, sPoints, depth)
+    out <- img
+    wg.Done()
+}
+
+func raytrace(cam camera.Camera, shapes shapes.Shape, sPoints, depth int) image.Image {
+    img := image.New(cam.GetWidth(), cam.GetHeight())
     pointPerPixelAxis := int(math.Sqrt(float64(sPoints)))
-    for x := 0; x < cam.Width;x++ {
-        for y := 0; y < cam.Height;y++ {
+    for x := 0; x < cam.GetWidth();x++ {
+        for y := 0; y < cam.GetHeight();y++ {
             img.SetPixel(
                 x, 
                 y,
-                processColor(
+                // processColor(
                     getColorForPixel(shapes, cam, x, y, pointPerPixelAxis, depth),
-                    2.2,
-                ),
+                    // 2.2,
+                // ),
+                
             )
         }
-        percent := (float64(x) / float64(cam.Width)) * 100
+        percent := (float64(x) / float64(cam.GetWidth())) * 100
         if percent == math.Trunc(percent) {
             fmt.Printf("\rRendering... %d%%", int(percent))
         }
@@ -111,18 +173,17 @@ func raytrace(cam camera.PinholeCamera, shapes shapes.Group, sPoints, depth int)
     return img
 }
 
-func getColorForPixel(shapes shapes.Shape, cam camera.PinholeCamera,pX, pY, supersamplingPoints, depth int) vec3.Vec3 {
+func getColorForPixel(shapes shapes.Shape, cam camera.Camera,pX, pY, supersamplingPoints, depth int) vec3.Vec3 {
     color := vec3.Vec3{0,0,0}
     for x := 0; x < supersamplingPoints;x++ {
         for y := 0; y < supersamplingPoints;y++ {
             pixelRay := cam.GetRayForPixel(
-                float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
-                float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() / float64(supersamplingPoints),
-                // float64(pX) + float64(x) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
-                // float64(pY) + float64(y) / float64(supersamplingPoints) + random.Float64() * 0 + .5 / float64(supersamplingPoints),
+                float64(pX) + (float64(x) + random.Float64()) / float64(supersamplingPoints),
+                float64(pY) + (float64(y) + random.Float64()) / float64(supersamplingPoints),
             )
             
-            c := calculateRadiance(shapes, pixelRay, depth)
+            // c := calculateRadiance(shapes, pixelRay, depth)
+            c := calculateRadiance2(shapes, pixelRay, depth)
             color.Add(c)
         }
     }
@@ -160,6 +221,30 @@ func calculateRadiance(scene shapes.Shape, renderRay ray.Ray, depth int) vec3.Ve
     } else {
         return emission;
     }
+}
+
+func calculateRadiance2(scene shapes.Shape, renderRay ray.Ray, depth int) vec3.Vec3 {
+    currentRay := &renderRay
+    value := vec3.Zero
+    add := vec3.One
+    for i := 0; i < depth;i++ {
+        closestHit := scene.Intersect(*currentRay);
+        if closestHit == nil {
+            log.Print("Sollte nicht passieren.")
+            break
+        }
+        
+        emission := closestHit.Material.EmittedRadiance(*currentRay, *closestHit);
+        currentRay = closestHit.Material.ScatteredRay(*currentRay, *closestHit);
+        
+        value.Add(vec3.MultiplyByVec3(add, emission))
+        if currentRay != nil {
+            add.MultiplyByVec3(closestHit.Material.Albedo(renderRay, *closestHit))
+        } else {
+            break
+        }
+    }
+    return value
 }
 
 func processColor(color vec3.Vec3, gamma float64) vec3.Vec3 {

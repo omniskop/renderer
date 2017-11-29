@@ -118,7 +118,11 @@ func (this Material_Metal) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
     )
     
     if this.DiffusionFactor != 0 {
+        tryAgain:
         dir = vec3.Normalize(vec3.Add(dir, vec3.Multiply(this.DiffusionFactor,RandomDirection())));
+        if vec3.DotProduct(dir, h.Normal) < 0 {
+            goto tryAgain
+        }
     }
     
     return &ray.Ray{ h.Position, dir, 0.000001, math.Inf(1)}
@@ -202,6 +206,9 @@ type Material_Transparent struct {
     RefractionIndex  float64 // air 1.0; water 1.3; glass 1.5;
 }
 
+// n1 = outerMaterialRefractionIndex    1.0
+// n2 = RefractionIndex                 1.5
+
 func (this Material_Transparent) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
     return vec3.Zero
 }
@@ -226,11 +233,15 @@ func (this Material_Transparent) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
         refractionIndexB = this.RefractionIndex
     }
     
+    //n1 = refractionIndexA 1.5
+    //n2 = refractionIndexB 1.0
+    
     refractionRatio := refractionIndexA / refractionIndexB
     c := - vec3.DotProduct(hitNormal, r.Direction)
     k := 1 - refractionRatio*refractionRatio * (1 - c*c)
     
-    schlick := math.Pow( (refractionIndexA - refractionIndexB) / (refractionIndexA + refractionIndexB) ,2)
+    schlickK := math.Pow( (refractionIndexA - refractionIndexB) / (refractionIndexA + refractionIndexB) ,2)
+    schlick := schlickK  + (1 - schlickK) * math.Pow(1 + vec3.DotProduct(hitNormal, r.Direction), 5)
     
     var dir vec3.Vec3;
     if k >= 0 && random.Float64() > schlick{

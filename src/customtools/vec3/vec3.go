@@ -83,6 +83,10 @@ func Add(a Vec3, vecs ...Vec3) Vec3 {
     return r
 }
 
+func Add_2(a Vec3, b Vec3) Vec3 {
+    return Vec3{a.X+b.X,a.Y+b.Y,a.Z+b.Z}
+}
+
 func Subtract(a, b Vec3) Vec3 {
     return Vec3{a.X - b.X, a.Y - b.Y, a.Z - b.Z}
 }
@@ -93,6 +97,10 @@ func MultiplyByVec3(a Vec3, vs ...Vec3) Vec3 {
         r.MultiplyByVec3(vec)
     }
     return r
+}
+
+func MultiplyByVec3_2(a Vec3, b Vec3) Vec3 {
+    return Vec3{a.X*b.X,a.Y*b.Y,a.Z*b.Z}
 }
 
 func Multiply(n float64, v Vec3) Vec3 {
@@ -131,9 +139,9 @@ func Normalize(a Vec3) Vec3 {
     return Divide(a, a.Length())
 }
 
-func Project(a,b vec3.Vec3) vec3.Vec3 {
-    c := vec3.Normalize(b)
-    return vec3.Multiply( vec3.DotProduct(a, c),c)
+func Project(a,b Vec3) Vec3 {
+    c := Normalize(b)
+    return Multiply( DotProduct(a, c),c)
 }
 
 func ProjectOnNormalized(a,b Vec3) Vec3 {
@@ -144,8 +152,8 @@ func Reject(a,b Vec3) Vec3 {
     return Subtract(
         a,
         Multiply(
-            vec3.DotProduct(a,b) /
-            vec3.DotProduct(b,b) ,
+            DotProduct(a,b) /
+            DotProduct(b,b) ,
             b,
         ),
     )
