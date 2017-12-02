@@ -8,8 +8,12 @@ import (
     "time"
     "runtime"
     "sync"
+    "flag"
+    "os"
+    "runtime/pprof"
     "cgtools/random"
     "cgtools/image"
+    _"cgtools/mat4"
     "customtools/vec3"
     "customtools/shapes"
     "customtools/camera"
@@ -19,7 +23,20 @@ import (
 
 var startTime time.Time;
 
-func main() {    
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "", "write memory profile to this file")
+
+
+func main() {
+    flag.Parse()
+    if *cpuprofile != "" {
+        f, err := os.Create(*cpuprofile)
+        if err != nil {
+            log.Fatal(err)
+        }
+        pprof.StartCPUProfile(f)
+        defer pprof.StopCPUProfile()
+    }
     startTime = time.Now()
     random.InitSeed();
     
@@ -40,19 +57,18 @@ func main() {
     //     20,
     // )
     
-    img := multithreadMagic(
+    img := raytrace(
         camera.PinholeCamera{
             Position: sceneCamera.GetPosition(),
             Direction: sceneCamera.GetDirection(),
             OpeningAngle: sceneCamera.GetOpeningAngle(),
-            Width: 1000,
-            Height: 1000,
+            Width: 200,
+            Height: 200,
         },
         scenes.GetCylinderScene(),
         300,
         30,
     )
-    
     
     
     // img := multithreadMagic(
@@ -154,11 +170,11 @@ func raytrace(cam camera.Camera, shapes shapes.Shape, sPoints, depth int) image.
             img.SetPixel(
                 x, 
                 y,
-                // processColor(
+                processColor(
                     getColorForPixel(shapes, cam, x, y, pointPerPixelAxis, depth),
-                    // 2.2,
-                // ),
-                
+                    2.2,
+                ),
+
             )
         }
         percent := (float64(x) / float64(cam.GetWidth())) * 100
@@ -253,12 +269,6 @@ func processColor(color vec3.Vec3, gamma float64) vec3.Vec3 {
         math.Pow( color.Y, 1 / gamma ),
         math.Pow( color.Z, 1 / gamma ),
     };
-}
-
-type PixelInformation struct {
-    X   int
-    Y   int
-    Color   vec3.Vec3
 }
 
 

@@ -1,3 +1,4 @@
 .DS_Store
 setgo.sh
 .atom-build.yml
+*_test.go
