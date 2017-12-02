@@ -213,7 +213,7 @@ func (this Material_Transparent) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
     return vec3.Zero
 }
 
-func (this Material_Transparent) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
+func (this Material_Transparent) ScatteredRay2(r ray.Ray, h Hit) *ray.Ray {
     const outerMaterialRefractionIndex = 1.0 // air
     
     var refractionIndexA float64
@@ -272,6 +272,45 @@ func (this Material_Transparent) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
         T0: 0.0000001,
         T1: math.Inf(1),
     }
+}
+
+func (this Material_Transparent) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
+    n1 := 1.0
+    n2 := this.RefractionIndex
+    var rayV ray.Ray
+    n := h.Normal
+    
+    if(vec3.DotProduct(n, r.Direction) > 0) {
+        n = vec3.Multiply(-1, n)
+        temp := n1
+        n1 = n2
+        n2 = temp
+    }
+    
+    c := vec3.DotProduct(vec3.Multiply(-1, n), r.Direction)
+    ratio := n1 / n2
+    disk := 1- math.Pow(ratio, 2) * (1 - math.Pow(c,2))
+    r0 := math.Pow(((n1-n2) / (n1 + n2)), 2)
+    schlick := r0 + (1-r0) * math.Pow(1 + vec3.DotProduct(n, r.Direction), 5)
+    
+    if disk >= 0 && random.Float64() > schlick {
+        scatDir := vec3.Add(vec3.Multiply(ratio, r.Direction), vec3.Multiply((ratio * c - math.Sqrt(disk)), n))
+        rayV = ray.Ray{
+            h.Position,
+            scatDir,
+            0.000001,
+            math.Inf(1),
+        }
+    } else {
+        d := vec3.Subtract(r.Direction, vec3.Multiply(2 * vec3.DotProduct(n, r.Direction), n))
+        rayV = ray.Ray{
+            h.Position,
+            d,
+            0.00001,
+            math.Inf(1),
+        }
+    }
+    return &rayV
 }
 
 func (this Material_Transparent) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
