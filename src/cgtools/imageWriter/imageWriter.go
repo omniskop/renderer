@@ -12,21 +12,21 @@ import (
 type imageWriter struct{
     width   int
     height  int
-    img     *image.RGBA
+    img     *image.RGBA64
 }
 
 func New(data []float64, width int, height int) imageWriter {
-    img := image.NewRGBA(image.Rect(0, 0, width, height));
+    img := image.NewRGBA64(image.Rect(0, 0, width, height));
     
     // Create a colored image of the given width and height.
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			img.Set(x, y, color.RGBA{
-				R: uint8(math.Floor(data[(y * width + x) * 3    ] * 255)),
-				G: uint8(math.Floor(data[(y * width + x) * 3 + 1] * 255)),
-				B: uint8(math.Floor(data[(y * width + x) * 3 + 2] * 255)),
-				A: 255,
+			img.Set(x, y, color.RGBA64{
+				R: uint16(math.Floor(data[(y * width + x) * 3    ] * 65535)),
+				G: uint16(math.Floor(data[(y * width + x) * 3 + 1] * 65535)),
+				B: uint16(math.Floor(data[(y * width + x) * 3 + 2] * 65535)),
+				A: 65535,
 			})
 		}
 	}
