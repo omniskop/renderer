@@ -317,6 +317,20 @@ func (this Material_Transparent) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
 
+/*  ====== NORMAL ======  */
+type Material_Normal struct {}
+
+func (this Material_Normal) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
+    return h.Normal
+}
+
+func (this Material_Normal) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
+    return nil
+}
+
+func (this Material_Normal) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
+    return vec3.Black
+}
 
 
 

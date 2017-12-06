@@ -11,7 +11,7 @@ import (
 func GetComparisonScene() shapes.Group {
     return shapes.Group{
         []shapes.Shape{
-            shapes.Sphere{
+            /*shapes.Sphere{
                 vec3.Vec3{-2,0,-30},
                 1,
                 shapes.Material_Diffuse{vec3.Vec3{0.7,1,0.7}},
@@ -25,7 +25,7 @@ func GetComparisonScene() shapes.Group {
                 vec3.Vec3{2,0,-30},
                 1,
                 shapes.Material_Diffuse{vec3.Vec3{0.7,0.7,1}},
-            },
+            },*/
             shapes.Sphere{
                 vec3.Vec3{0,-0.5,-15},
                 1,

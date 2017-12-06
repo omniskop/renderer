@@ -16,6 +16,7 @@ func NewIdentity() (m Mat4) {
 }
 
 func NewFromValues(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33 float64) (m Mat4) {
+    m.makeIdentity()
     m.Set(0,0,m00)
     m.Set(0,1,m00)
     m.Set(0,2,m00)
@@ -49,24 +50,29 @@ func NewFromVec3(b0, b1, b2 vec3.Vec3) (m Mat4) {
     return m
 }
 
-func TranslateVec3(t vec3.Vec3) (m Mat4) {
+func NewTranslationByVec3(t vec3.Vec3) (m Mat4) {
+    m.makeIdentity()
     m.Set(3,0,t.X)
     m.Set(3,1,t.Y)
     m.Set(3,2,t.Z)
     return m
 }
 
-func Translate(x,y,z float64) (m Mat4) {
+func NewTranslation(x,y,z float64) (m Mat4) {
+    m.makeIdentity()
     m.Set(3,0,x)
     m.Set(3,1,y)
     m.Set(3,2,z)
     return m
 }
 
-func RotateVec3(axis vec3.Vec3, angle float64) (m Mat4) {
-    rad := (angle / 180) * (math.Pi);
-    cosa := math.Cos(rad)
-    sina := math.Sin(rad)
+func NewRotationAroundVec3(axis vec3.Vec3, angle float64) (m Mat4) {
+    m.makeIdentity()
+    // rad := (angle / 180) * (math.Pi);
+    // cosa := math.Cos(rad)
+    // sina := math.Sin(rad)
+    cosa := math.Cos(angle)
+    sina := math.Sin(angle)
     l := axis.Length()
     rx := axis.X / l
     ry := axis.Y / l
@@ -88,18 +94,20 @@ func RotateVec3(axis vec3.Vec3, angle float64) (m Mat4) {
     return m
 }
 
-func Rotate(x,y,z, angle float64) Mat4 {
-    return RotateVec3(vec3.Vec3{x,y,z}, angle)
+func NewRotation(x,y,z, angle float64) Mat4 {
+    return NewRotationAroundVec3(vec3.Vec3{x,y,z}, angle)
 }
 
-func ScaleVec3(s vec3.Vec3) (m Mat4) {
+func NewScalingByVec3(s vec3.Vec3) (m Mat4) {
+    m.makeIdentity()
     m.Set(0,0,s.X)
     m.Set(1,1,s.Y)
     m.Set(2,2,s.Z)
     return m
 }
 
-func Scale(x,y,z float64) (m Mat4) {
+func NewScale(x,y,z float64) (m Mat4) {
+    m.makeIdentity()
     m.Set(0,0,x)
     m.Set(1,1,y)
     m.Set(2,2,z)
@@ -114,7 +122,8 @@ func (this *Mat4) Set(c,r int, v float64) {
     this.Values[4*c+r] = v
 }
 
-func (this *Mat4) Multiply(m Mat4) (n Mat4) {
+func (this Mat4) Multiply(m Mat4) (n Mat4) {
+    n.makeIdentity()
     n.Values[4 * 0 + 0] = 
         this.Values[4 * 0 + 0] * m.Values[4 * 0 + 0] + 
         this.Values[4 * 1 + 0] * m.Values[4 * 0 + 1] + 
@@ -219,6 +228,7 @@ func (this Mat4) TransformDirection(v vec3.Vec3) vec3.Vec3 {
 }
 
 func (this *Mat4) Transpose() (n Mat4) {
+    n.makeIdentity()
     // for c := 0; c != 4;c++ {
     //     for r := 0; r != 4; r++ {
     //         n.Set(c,r,this.Get(r,c))
@@ -243,7 +253,7 @@ func (this *Mat4) Transpose() (n Mat4) {
 }
 
 func (this Mat4) invertRigid() Mat4 {
-    ri := Mat4{}
+    ri := NewIdentity()
     for c := 0;c!=3;c++ {
         for r := 0; r != 3; r++ {
             ri.Set(c,r,this.Get(r,c))
@@ -272,6 +282,7 @@ func (this *Mat4) makeIdentity() {
 }
 
 func (this Mat4) InvertFull() (ret Mat4) {
+    ret.makeIdentity()
     mat := this.Values
     dst := ret.Values
     tmp := make([]float64, 12)
@@ -387,6 +398,7 @@ func (this Mat4) AsArray() (out [16]float64) {
 }
 
 func (this Mat4) GetRotation() (r Mat4) {
+    r.makeIdentity()
     r.Set(0,0, this.Get(0,0))
     r.Set(1,0, this.Get(1,0))
     r.Set(2,0, this.Get(2,0))
@@ -400,6 +412,7 @@ func (this Mat4) GetRotation() (r Mat4) {
 }
 
 func (this Mat4) GetTranslation() (t Mat4) {
+    t.makeIdentity()
     t.Set(3,0, this.Get(3,0))
     t.Set(3,1, this.Get(3,1))
     t.Set(3,2, this.Get(3,2))
@@ -415,6 +428,7 @@ func (this Mat4) GetPosition() vec3.Vec3 {
 }
 
 func (this Mat4) String() (s string) {
+    s += "Matrix\n"
     for r := 0; r < 4; r++ {
         s += "( "
         for c := 0; c < 4;c++ {
