@@ -3,6 +3,7 @@ package shapes
 import (
     "customtools/vec3"
     "customtools/ray"
+    "customtools/space"
     "math"
 )
 
@@ -10,10 +11,10 @@ type Disc struct {
     Position    vec3.Vec3
     Normal   vec3.Vec3
     Radius      float64
-    Material    Material
+    Material    space.Material
 }
 
-func (this Disc) Intersect(r ray.Ray) *Hit {
+func (this Disc) Intersect(r ray.Ray) *space.Hit {
     t := vec3.DotProduct(vec3.Subtract(this.Position, r.Origin), this.Normal) / vec3.DotProduct(r.Direction, this.Normal)
     
     if math.IsNaN(t) || t < r.T0 || t > r.T1 || vec3.Subtract(r.PointAt(t), this.Position).Length() > this.Radius {
@@ -27,7 +28,7 @@ func (this Disc) Intersect(r ray.Ray) *Hit {
         normal = this.Normal
     }
     
-    return &Hit{
+    return &space.Hit{
         T: t,
         Position: r.PointAt(t),
         Normal: normal,

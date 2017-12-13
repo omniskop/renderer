@@ -3,6 +3,7 @@ package shapes
 import (
     "customtools/vec3"
     "customtools/ray"
+    "customtools/space"
     "math"
     "log"
 )
@@ -12,12 +13,12 @@ type Cone struct {
     Normal   vec3.Vec3
     Radius      float64
     Height      float64
-    Material    Material
+    Material    space.Material
     disc       Disc
     walls       OpenCone
 }
 
-func NewCone(position, normal vec3.Vec3, radius, height float64, material Material) *Cone {
+func NewCone(position, normal vec3.Vec3, radius, height float64, material space.Material) *Cone {
     out := Cone{Position: position, Normal: normal, Radius: radius / height, Height: height, Material: material}
     // out.disc = Disc{position, vec3.Vec3{0,-1,0}, radius, material}
     out.disc = Disc{position, vec3.Multiply(-1, normal), radius, material}
@@ -26,7 +27,7 @@ func NewCone(position, normal vec3.Vec3, radius, height float64, material Materi
     return &out
 }
 
-func (this Cone) Intersect(r ray.Ray) *Hit {
+func (this Cone) Intersect(r ray.Ray) *space.Hit {
     if vec3.DotProduct(this.disc.Normal, r.Direction) < 0 {
         discHit := this.disc.Intersect(r)
     
@@ -45,15 +46,15 @@ type OpenCone struct {
     Normal   vec3.Vec3
     Radius      float64
     Height      float64
-    Material    Material
+    Material    space.Material
 }
 
-func NewOpenCone(position, normal vec3.Vec3, radius, height float64, material Material) OpenCone {
+func NewOpenCone(position, normal vec3.Vec3, radius, height float64, material space.Material) OpenCone {
     out := OpenCone{Position: position, Normal: normal, Radius: radius / height, Height: height, Material: material}
     return out
 }
 
-func (this OpenCone) Intersect(r ray.Ray) *Hit {
+func (this OpenCone) Intersect(r ray.Ray) *space.Hit {
     d := r.Direction
     // x0 :=  vec3.Subtract(vec3.Subtract(r.Origin, this.Position), vec3.Vec3{0,this.Height,0})
     x0 :=  vec3.Subtract(vec3.Subtract(r.Origin, this.Position), vec3.Multiply(this.Height, this.Normal))
@@ -102,7 +103,7 @@ func (this OpenCone) Intersect(r ray.Ray) *Hit {
         normal = vec3.Multiply(-1, normal)
     }
     
-    return &Hit{
+    return &space.Hit{
         T: t,
         Position: point,
         Normal: normal,

@@ -1,4 +1,4 @@
-package shapes
+package space
 
 import(
     "cgtools/random"

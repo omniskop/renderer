@@ -3,6 +3,7 @@ package scenes
 import (
     "customtools/shapes"
     "customtools/vec3"
+    "customtools/space"
 )
 /*
 Position: vec3.Vec3{0,0,4},
@@ -11,39 +12,40 @@ OpeningAngle: math.Pi / 7,
 */
 func GetWaterMolecule() shapes.Group {
     return shapes.Group{
+        space.NoTransformation(),
         []shapes.Shape{
             shapes.Sphere{ // Red sphere
                 Position: vec3.Vec3{0,-0.4,-11.2},
-                Material: shapes.Material_Diffuse{vec3.Red},
+                Material: space.Material_Diffuse{vec3.Red},
                 Radius: 1,
             },
             shapes.Sphere{ // left blue sphere
                 Position: vec3.Vec3{-.7,-1,-10.7},
-                Material: shapes.Material_Diffuse{vec3.Blue},
+                Material: space.Material_Diffuse{vec3.Blue},
                 Radius: .5,
             },
             shapes.Sphere{ // right blue sphere
                 Position: vec3.Vec3{.7,-1,-10.7},
-                Material: shapes.Material_Diffuse{vec3.Blue},
+                Material: space.Material_Diffuse{vec3.Blue},
                 Radius: .5,
             },
             shapes.Sphere{ // mirror sphere
                 Position: vec3.Vec3{0,5.7,-11.2},
-                Material: shapes.Material_Metal{vec3.White, 0.05},
+                Material: space.Material_Metal{vec3.White, 0.05},
                 Radius: 5,
             },
             shapes.Sphere{
                 Position: vec3.Vec3{0.5,0.5,-6},
-                Material: shapes.Material_Transparent{vec3.White, 1.5},
+                Material: space.Material_Transparent{vec3.White, 1.5},
                 Radius: 2,
             },
             shapes.Plane{ // bottom
                 Position: vec3.Vec3{0,-1.3,0},
                 Normal: vec3.Vec3{0,1,0},
-                // Material: shapes.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
-                Material: shapes.Material_Metal_Checkerboard{1,vec3.White, vec3.Vec3{0.01,0.01,0.01}, 0.005},
+                // Material: space.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
+                Material: space.Material_Metal_Checkerboard{1,vec3.White, vec3.Vec3{0.01,0.01,0.01}, 0.005},
             },
-            shapes.Background{shapes.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
+            shapes.Background{space.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
         },
     }
 }

@@ -2,16 +2,9 @@ package shapes
 
 import (
     "customtools/ray"
-    "customtools/vec3"
+    "customtools/space"
 )
 
 type Shape interface {
-    Intersect(r ray.Ray) *Hit
-}
-
-type Hit struct {
-    T           float64
-    Position    vec3.Vec3
-    Normal      vec3.Vec3
-    Material    Material
+    Intersect(r ray.Ray) *space.Hit
 }

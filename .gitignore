@@ -2,3 +2,5 @@
 setgo.sh
 .atom-build.yml
 *_test.go
+*.prof
+*.mprof

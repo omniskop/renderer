@@ -3,16 +3,17 @@ package shapes
 import (
     "customtools/vec3"
     "customtools/ray"
+    "customtools/space"
     "math"
 )
 
 type Sphere struct {
     Position    vec3.Vec3
     Radius      float64
-    Material    Material
+    Material    space.Material
 }
 
-func (s Sphere) Intersect(r ray.Ray) *Hit {
+func (s Sphere) Intersect(r ray.Ray) *space.Hit {
     /*
         a = d^2
         b = 2x0d
@@ -73,7 +74,7 @@ func (s Sphere) Intersect(r ray.Ray) *Hit {
     //     log.Print("error (ray.Direction normalized?) ", offset, " ",vec3.Subtract(point, s.Position).Length() )
     // }
     
-    return &Hit{
+    return &space.Hit{
         T: offset,
         Position: point,
         Normal: vec3.Divide( vec3.Subtract(point, s.Position), s.Radius ),

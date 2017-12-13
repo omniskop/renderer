@@ -3,6 +3,7 @@ package shapes
 import (
     "customtools/vec3"
     "customtools/ray"
+    "customtools/space"
 )
 
 type Cylinder struct {
@@ -10,13 +11,13 @@ type Cylinder struct {
     Normal   vec3.Vec3
     Radius      float64
     Height      float64
-    Material    Material
+    Material    space.Material
     disc1       Disc
     disc2       Disc
     walls       HollowCylinder
 }
 
-func NewCylinder(position, normal vec3.Vec3, radius, height float64, material Material) Cylinder {
+func NewCylinder(position, normal vec3.Vec3, radius, height float64, material space.Material) Cylinder {
     out := Cylinder{Position: position, Normal: normal, Radius: radius, Height: height, Material: material}
     out.disc1 = Disc{position, vec3.Multiply(-1,normal), radius, material}
     out.disc2 = Disc{vec3.Add(position, vec3.Multiply(height, normal)), normal, radius, material}
@@ -25,7 +26,7 @@ func NewCylinder(position, normal vec3.Vec3, radius, height float64, material Ma
     return out
 }
 
-func (this Cylinder) Intersect(r ray.Ray) *Hit {
+func (this Cylinder) Intersect(r ray.Ray) *space.Hit {
     if vec3.DotProduct(this.disc1.Normal, r.Direction) < 0 {
         disc1Hit := this.disc1.Intersect(r)
         
@@ -50,11 +51,11 @@ type HollowCylinder struct {
     Normal   vec3.Vec3
     Radius      float64
     Height      float64
-    Material    Material
+    Material    space.Material
     collisionSphere Sphere
 }
 
-func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, material Material) HollowCylinder {
+func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, material space.Material) HollowCylinder {
     out := HollowCylinder{Position: position, Normal: normal, Radius: radius, Height: height, Material: material}
     out.collisionSphere = Sphere{
         Position: vec3.Vec3{0,0,0},
@@ -63,7 +64,7 @@ func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, mater
     return out
 }
 
-func (this HollowCylinder) Intersect(r ray.Ray) *Hit {
+func (this HollowCylinder) Intersect(r ray.Ray) *space.Hit {
     xAxis := vec3.Normalize(vec3.CrossProduct(this.Normal, r.Direction)) // Durch die Direction kann man sich eine Projektion für die Richtung spaaren
     if xAxis.Equals(vec3.Zero) {
         // Happens when this.Normal and r.Direction are equal.
@@ -116,7 +117,7 @@ func (this HollowCylinder) Intersect(r ray.Ray) *Hit {
         return nil
     }
     
-    return &Hit{
+    return &space.Hit{
         T: scaledT,
         Position: point,
         Normal: projectedHit.Normal,
