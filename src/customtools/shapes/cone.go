@@ -28,13 +28,13 @@ func NewCone(position, normal vec3.Vec3, radius, height float64, material space.
 }
 
 func (this Cone) Intersect(r ray.Ray) *space.Hit {
-    if vec3.DotProduct(this.disc.Normal, r.Direction) < 0 {
-        discHit := this.disc.Intersect(r)
-    
-        if discHit != nil {
-            return discHit
-        }
-    }
+    // if vec3.DotProduct(this.disc.Normal, r.Direction) < 0 {
+    //     discHit := this.disc.Intersect(r)
+    // 
+    //     if discHit != nil {
+    //         return discHit
+    //     }
+    // }
     
     coneHit := this.walls.Intersect(r)
     
@@ -99,7 +99,8 @@ func (this OpenCone) Intersect(r ray.Ray) *space.Hit {
     // normal := vec3.Normalize(vec3.CrossProduct(vec3.CrossProduct(tipToPoint, vec3.Vec3{0,1,0}), tipToPoint))
     normal := vec3.Normalize(vec3.CrossProduct(vec3.CrossProduct(tipToPoint, this.Normal), tipToPoint))
     
-    if vec3.DotProduct(r.Direction, normal) < 0 {
+    // it is correct. Don't change it again!
+    if vec3.DotProduct(r.Direction, normal) > 0 {
         normal = vec3.Multiply(-1, normal)
     }
     

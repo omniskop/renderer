@@ -4,6 +4,7 @@ import (
     "customtools/vec3"
     "customtools/ray"
     "cgtools/mat4"
+    "log"
 )
 
 type Transformation struct {
@@ -50,39 +51,38 @@ func (this *Transformation) TransformRayIn(r ray.Ray) ray.Ray {
     if !this.enabled{return r}
     return ray.Ray{
         this.matrix.TransformPoint(r.Origin),
-        this.matrix.TransformDirection(r.Direction),
+        // vec3.Add(this.matrix.GetPosition(), r.Origin),
+        vec3.Normalize(this.matrix.TransformDirection(r.Direction)),
         r.T0,
         r.T1,
     }
 }
 
-func (this *Transformation) TransformPointIn(p vec3.Vec3) vec3.Vec3 {
-    if !this.enabled{return p}
-    return this.matrix.TransformPoint(p)
-}
-
-func (this *Transformation) TransformHitIn(h *Hit) {
-    if !this.enabled{return}
-    h.Position = this.matrix.TransformPoint(h.Position)
-    h.Normal = this.matrix.TransformDirection(h.Normal)
-}
-
-// func (this *Transformation) TransformHitOut(h *Hit) {
-//     if !this.enabled{return}
-//     k := this.matrix.TransformDirection(h.Position)
-//     h.Position = vec3.Vec3{
-//         -k.X - this.matrix.Get(3,0),
-//         -k.Y - this.matrix.Get(3,1),
-//         -k.Z - this.matrix.Get(3,2),
-//     }
-//     h.Normal = vec3.Multiply(-1,this.matrix.TransformDirection(h.Normal))
-// 
-//     _ = k
+// FIX FIRST
+// func (this *Transformation) TransformPointIn(p vec3.Vec3) vec3.Vec3 {
+//     if !this.enabled{return p}
+//     return this.matrix.TransformPoint(p)
 // }
+
+// FIX FIRST
+// func (this *Transformation) TransformHitIn(h *Hit) {
+//     if !this.enabled{return}
+//     h.Position = this.matrix.TransformPoint(h.Position)
+//     h.Normal = this.matrix.TransformDirection(h.Normal)
+// }
+
 
 func (this *Transformation) TransformHitOut(h *Hit) {
     if !this.enabled{return}
+    
+    _ = log.Print
+    if h.Normal.Y == 1 {
+        log.Print("Rollmops")
+    }
+    
+    // h.Position = this.matrix.TransformPoint(h.Position)
     h.Position = this.negatedMatrix.TransformPoint(h.Position)
+    // h.Position = vec3.Add(this.negatedMatrix.GetPosition(), h.Position)
     h.Normal = this.negatedMatrix.TransformDirection(h.Normal)
 }
 

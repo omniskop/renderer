@@ -5,6 +5,7 @@ import (
     "customtools/vec3"
     "customtools/ray"
     "customtools/space"
+    "log"
 )
 
 
@@ -23,6 +24,8 @@ func (this Plane) Intersect(r ray.Ray) *space.Hit {
     
     var normal vec3.Vec3
     if vec3.DotProduct(this.Normal, r.Direction) > 0 {
+        // log.Print("nope ", r.Direction.Length(), r.Origin)
+        _ = log.Print
         normal = vec3.Multiply(-1,this.Normal)
     } else {
         normal = this.Normal

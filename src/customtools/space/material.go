@@ -23,6 +23,7 @@ type Material interface {
     EmittedRadiance(r ray.Ray, h Hit)       vec3.Vec3
     ScatteredRay(r ray.Ray, h Hit)          *ray.Ray
     Albedo(r ray.Ray, h Hit)                vec3.Vec3
+    String()                                string
 }
 
 /*  ======  DIFFUSE  ====== */
@@ -39,11 +40,14 @@ func (this Material_Diffuse) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
 func (this Material_Diffuse) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
     dir := vec3.Normalize(vec3.Add(h.Normal, RandomDirection()))
     return &ray.Ray{ h.Position, dir, 0.00001, math.Inf(1)}
+    // return &ray.Ray{ h.Position, h.Normal, 0.00001, math.Inf(1)}
 }
 
 func (this Material_Diffuse) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
+
+func (this Material_Diffuse) String() string {return "Material_Diffuse"}
 
 /*  ======  DIFFUSE_CHECKERBORD  ====== */
 
@@ -78,6 +82,8 @@ func (this Material_Diffuse_Checkerboard) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     }
 }
 
+func (this Material_Diffuse_Checkerboard) String() string {return "Material_Diffuse_Checkerboard"}
+
 /*  ====== WHITELIGHT ======  */
 
 type Material_WhiteLight struct {
@@ -96,6 +102,8 @@ func (this Material_WhiteLight) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 func (this Material_WhiteLight) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
+
+func (this Material_WhiteLight) String() string {return "Material_WhiteLight"}
 
 /*  ====== MIRROR ======  */
 
@@ -131,6 +139,8 @@ func (this Material_Metal) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 func (this Material_Metal) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
+
+func (this Material_Metal) String() string {return "Material_Metal"}
 
 /*  ====== MIRROR_CHECKERBOARD ======  */
 
@@ -181,6 +191,8 @@ func (this Material_Metal_Checkerboard) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     }
 }
 
+func (this Material_Metal_Checkerboard) String() string {return "Material_Metal_Checkerboard"}
+
 /*  ====== SKY ======  */
 
 type Material_Sky struct {
@@ -198,6 +210,8 @@ func (this Material_Sky) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 func (this Material_Sky) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return vec3.Black
 }
+
+func (this Material_Sky) String() string {return "Material_Sky"}
 
 /*  ====== TRANSPARENT ======  */
 
@@ -317,11 +331,15 @@ func (this Material_Transparent) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return this.Color
 }
 
+func (this Material_Transparent) String() string {return "Material_Transparent"}
+
 /*  ====== NORMAL ======  */
 type Material_Normal struct {}
 
 func (this Material_Normal) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
-    return h.Normal
+    return vec3.Clamp(h.Normal)
+    // k := h.T * 20
+    // return vec3.Vec3{k,k,k}
 }
 
 func (this Material_Normal) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
@@ -332,6 +350,7 @@ func (this Material_Normal) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
     return vec3.Black
 }
 
+func (this Material_Normal) String() string {return "Material_Normal"}
 
 
 
