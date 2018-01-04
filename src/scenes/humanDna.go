@@ -5,6 +5,7 @@ import (
     "customtools/vec3"
     "customtools/camera"
     "customtools/space"
+    "customtools/texture"
     "math"
 )
 
@@ -58,7 +59,7 @@ func GetHumanDnaScene() shapes.Group {
             // shapes.Sphere{vec3.Multiply(scale,vec3.Vec3{0,3,7}), scale * 3, space.Material_Transparent{vec3.White, 1.5}},
             shapes.Plane{vec3.Vec3{0,0,0}, vec3.Normalize(vec3.Vec3{0,1,0}), space.Material_Metal{vec3.Vec3{0.9,0.9,0.9},0.1}},
             // shapes.Sphere{vec3.Vec3{0,0,0}, 1, space.Material_Diffuse{vec3.Vec3{0,1,0}}},
-            shapes.Background{space.Material_Sky{vec3.Vec3{1,1,1}}},
+            shapes.Background{space.Material_Sky{texture.NewColor(vec3.Vec3{1,1,1})}},
         },
     }
 }

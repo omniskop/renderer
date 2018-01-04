@@ -4,3 +4,4 @@ setgo.sh
 *_test.go
 *.prof
 *.mprof
+.vscode

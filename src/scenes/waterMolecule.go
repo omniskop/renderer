@@ -4,6 +4,7 @@ import (
     "customtools/shapes"
     "customtools/vec3"
     "customtools/space"
+    "customtools/texture"
 )
 /*
 Position: vec3.Vec3{0,0,4},
@@ -45,7 +46,7 @@ func GetWaterMolecule() shapes.Group {
                 // Material: space.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
                 Material: space.Material_Metal_Checkerboard{1,vec3.White, vec3.Vec3{0.01,0.01,0.01}, 0.005},
             },
-            shapes.Background{space.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
+            shapes.Background{space.Material_Sky{texture.NewColor(vec3.Vec3{0.8,0.8,1})}},
         },
     }
 }

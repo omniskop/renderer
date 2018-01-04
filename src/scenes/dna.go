@@ -5,6 +5,7 @@ import (
     "customtools/vec3"
     "customtools/camera"
     "customtools/space"
+    "customtools/texture"
     "math"
 )
 /*
@@ -23,7 +24,7 @@ func GetDnaScene() shapes.Group {
             shapes.Group{space.NoTransformation(),generateDnaString(vec3.Vec3{0,0,-1}, vec3.Vec3{5,0,0},40)},
             shapes.Plane{vec3.Vec3{0,-7,0}, vec3.Vec3{0,1,0}, space.Material_Metal{vec3.Vec3{0.1,0.1,0.4}, 0.05}},
             shapes.Sphere{vec3.Vec3{-15,0,-60}, 10, space.Material_Metal{vec3.Vec3{1,1,1}, 0}},
-            shapes.Background{space.Material_Sky{vec3.Vec3{1,1,1}}},
+            shapes.Background{space.Material_Sky{texture.NewColor(vec3.Vec3{1,1,1})}},
         },
     }
 }

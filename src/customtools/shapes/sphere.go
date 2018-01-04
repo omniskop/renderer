@@ -74,10 +74,19 @@ func (s Sphere) Intersect(r ray.Ray) *space.Hit {
     //     log.Print("error (ray.Direction normalized?) ", offset, " ",vec3.Subtract(point, s.Position).Length() )
     // }
     
+    
+    normal := vec3.Divide(vec3.Subtract(point, s.Position), s.Radius);
+    
+    inclination := math.Acos(normal.Y);
+    azimuth := math.Pi + math.Atan2(normal.X, normal.Z);
+    u := azimuth / (2 * math.Pi);
+    v := inclination / math.Pi;
+    
     return &space.Hit{
         T: offset,
         Position: point,
-        Normal: vec3.Divide( vec3.Subtract(point, s.Position), s.Radius ),
+        Normal: normal,
+        SurfaceCoordinates: vec3.Vec3{u,v,0},
         Material: s.Material,
     }
 }

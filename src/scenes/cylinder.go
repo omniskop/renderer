@@ -5,6 +5,7 @@ import (
     "customtools/vec3"
     "customtools/camera"
     "customtools/space"
+    "customtools/texture"
     "math"
 )
 
@@ -54,7 +55,7 @@ func GetCylinderScene() shapes.Group {
                 Normal: vec3.Vec3{0,1,0},
                 Material: space.Material_Diffuse_Checkerboard{1,vec3.White, vec3.Black},
             },
-            shapes.Background{space.Material_Sky{vec3.Vec3{0.8,0.8,1}}},
+            shapes.Background{space.Material_Sky{texture.NewColor(vec3.Vec3{0.8,0.8,1})}},
         },
     }
 }

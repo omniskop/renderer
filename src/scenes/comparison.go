@@ -5,6 +5,7 @@ import (
     "customtools/vec3"
     "customtools/camera"
     "customtools/space"
+    "customtools/texture"
     "math"
 )
 
@@ -40,7 +41,7 @@ func GetComparisonScene() shapes.Group {
             },
             shapes.Plane{vec3.Vec3{0,-1,0}, vec3.Vec3{0,1,0}, space.Material_Metal{vec3.Vec3{0.1,0.1,0.4}, 0.05}},
             shapes.Plane{vec3.Vec3{0,-1.1,0}, vec3.Vec3{0,1,0}, space.Material_Diffuse{vec3.Vec3{1,0,0}}},
-            shapes.Background{space.Material_Sky{vec3.Vec3{1,1,1}}},
+            shapes.Background{space.Material_Sky{texture.NewColor(vec3.Vec3{1,1,1})}},
         },
     }
 }

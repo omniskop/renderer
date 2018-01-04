@@ -4,6 +4,7 @@ import(
     "cgtools/random"
     "customtools/vec3"
     "customtools/ray"
+    "customtools/texture"
     "math"
 )
 
@@ -25,6 +26,30 @@ type Material interface {
     Albedo(r ray.Ray, h Hit)                vec3.Vec3
     String()                                string
 }
+
+/*  ======  TEXTURE  ====== */
+
+type Material_Texture struct {
+    Texture         texture.Texture
+}
+
+func (this Material_Texture) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
+    return vec3.Zero;
+    // return this.Color;
+}
+
+func (this Material_Texture) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
+    dir := vec3.Normalize(vec3.Add(h.Normal, RandomDirection()))
+    return &ray.Ray{ h.Position, dir, 0.00001, math.Inf(1)}
+    // return &ray.Ray{ h.Position, h.Normal, 0.00001, math.Inf(1)}
+}
+
+func (this Material_Texture) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
+    return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+    // return vec3.Vec3{1,0,0}
+}
+
+func (this Material_Texture) String() string {return "Material_Texture"}
 
 /*  ======  DIFFUSE  ====== */
 
@@ -196,11 +221,11 @@ func (this Material_Metal_Checkerboard) String() string {return "Material_Metal_
 /*  ====== SKY ======  */
 
 type Material_Sky struct {
-    Color       vec3.Vec3
+    Texture       texture.Texture
 }
 
 func (this Material_Sky) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
-    return this.Color
+    return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
 }
 
 func (this Material_Sky) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
