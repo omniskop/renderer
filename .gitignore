@@ -5,3 +5,4 @@ setgo.sh
 *.prof
 *.mprof
 .vscode
+pkg/
