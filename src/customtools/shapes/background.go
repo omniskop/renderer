@@ -27,3 +27,7 @@ func (this Background) Intersect(r ray.Ray) *space.Hit {
 		Material:           this.Material,
 	}
 }
+
+func (this Background) Includes(point vec3.Vec3) bool {
+	return false
+}

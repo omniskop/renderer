@@ -8,6 +8,7 @@ import (
 	"customtools/ray"
 	"customtools/shapes"
 	"customtools/space"
+	"customtools/texture"
 	"customtools/vec3"
 	"flag"
 	"fmt"
@@ -39,25 +40,27 @@ func main() {
 	startTime = time.Now()
 	random.InitSeed()
 
+	// sceneCamera := scenes.GetDnaSceneCamera()
+	sceneCamera := scenes.GetCsgSceneCamera()
+	// sceneCamera := scenes.GetHumanDnaCamera()
+
 	_ = scenes.GetWaterMolecule()
 	_ = space.NewTransformation
-
-	// sceneCamera := scenes.GetDnaSceneCamera()
-	sceneCamera := scenes.GetTextureSceneCamera()
-	// sceneCamera := scenes.GetHumanDnaCamera()
+	_ = sceneCamera
+	_ = texture.NewColor
 
 	//Standart Scenen
 	img := multithreadMagic(
-		camera.SphereCamera{
-			Position:  sceneCamera.GetPosition(),
-			Direction: sceneCamera.GetDirection(),
-			// OpeningAngle: math.Pi / 4,
-			Width:  2000,
-			Height: 1000,
+		camera.PinholeCamera{
+			Position:     sceneCamera.GetPosition(),
+			Direction:    sceneCamera.GetDirection(),
+			OpeningAngle: math.Pi / 4,
+			Width:        500,
+			Height:       500,
 		},
-		scenes.GetTextureScene(),
-		100,
-		20,
+		scenes.GetCsgScene(),
+		500,
+		10,
 	)
 
 	// Kamera tests
@@ -89,59 +92,32 @@ func main() {
 	//     30,
 	// )
 
-	//scene tests
+	// scene tests
 	// img := multithreadMagic(
 	//     camera.PinholeCamera{
-	//             Position: vec3.Vec3{-5,4,5},
-	//             Direction: vec3.Normalize(vec3.Vec3{1,-0.2,-1}),
-	//             // Position: vec3.Vec3{0,0,5},
-	//             // Direction: vec3.Normalize(vec3.Vec3{0,0,-1}),
+	//             Position: vec3.Vec3{0,5,5},
+	//             Direction: vec3.Normalize(vec3.Vec3{0,-1,-1}),
 	//             OpeningAngle: math.Pi / 2,
 	//             Width: 400,
 	//             Height: 400,
 	//         },
 	//         shapes.Group{
-	//             // space.NewTransformation(vec3.Vec3{0,0,0}, math.Pi * 0,0,0),
 	//             space.NoTransformation(),
 	//             []shapes.Shape{
-	//                 shapes.Group{
-	//                     // space.NewTransformation(vec3.Vec3{0,1,0}, deg2rad(0),deg2rad(0),deg2rad(90)),
-	//                     space.NewTransformation(vec3.Vec3{0,0.4,0}, deg2rad(0),deg2rad(0),deg2rad(90)),
-	//                     // space.NoTransformation(),
-	//                     []shapes.Shape{
-	//                         shapes.NewCone(
-	//                             vec3.Vec3{0.7,0,0},
-	//                             vec3.Vec3{0,1,0},
-	//                             1,
-	//                             3,
-	//                             space.Material_Diffuse{vec3.Red},
-	//                             // space.Material_Normal{},
-	//                         ),
-	//                     },
-	//                 },
-	//                 // shapes.NewCylinder(
-	//                 //     vec3.Vec3{0,0,0},
-	//                 //     vec3.Vec3{1,0,0},
-	//                 //     1,
-	//                 //     0.5,
-	//                 //     space.Material_Diffuse{vec3.Green},
-	//                 // ),
-	//                 // shapes.NewCone(
-	//                 //     vec3.Vec3{0,0,0},
-	//                 //     vec3.Vec3{0,1,0},
-	//                 //     1,
-	//                 //     3,
-	//                 //     space.Material_Diffuse{vec3.Vec3{1,0.5,0.5}},
-	//                 //     // space.Material_Normal{},
-	//                 // ),
-	//                 // &shapes.Plane{
-	//                 //     vec3.Vec3{0,0,0},
-	//                 //     vec3.Vec3{0,1,0},
-	//                 //     // space.Material_Diffuse{vec3.Vec3{0.9,0.9,0.9}},
-	//                 //     space.Material_Normal{},
-	//                 // },
-	//                 shapes.Background{space.Material_Sky{vec3.White}},
-	//             },
+	// 				shapes.Union(
+	// 					shapes.Sphere{
+	// 						vec3.Vec3{-0.5,0,0},
+	// 						1,
+	// 						space.Material_Diffuse{texture.NewColor(1,0,0)},
+	// 					},
+	// 					shapes.Sphere{
+	// 						vec3.Vec3{0.5,0,0},
+	// 						1,
+	// 						space.Material_Diffuse{texture.NewColor(0,0,1)},
+	// 					},
+	// 				),
+	// 				shapes.Background{space.Material_Sky{texture.NewColor(1,1,1)}},
+	// 			},
 	//         },
 	//         70,
 	//         2,
@@ -149,7 +125,7 @@ func main() {
 
 	log.Print("Rendering took ", time.Since(startTime))
 
-	err := img.Write("doc/a10-1.png")
+	err := img.Write("doc/b04.png")
 	if err != nil {
 		log.Print("An error occoured while writing the file.")
 		log.Fatal(err)
@@ -316,6 +292,11 @@ func calculateRadiance2(scene shapes.Shape, renderRay ray.Ray, depth int) vec3.V
 		// }
 		// emission := vec3.Vec3{c,c,c}
 		currentRay = closestHit.Material.ScatteredRay(*currentRay, *closestHit)
+
+		// currentRay = nil
+		// v := closestHit.T * 10
+		// // v = 10 - (v/10)*10
+		// emission = vec3.Vec3{v, v, v}
 
 		value.Add(vec3.MultiplyByVec3(add, emission))
 		if currentRay != nil {

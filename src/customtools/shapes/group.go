@@ -3,10 +3,7 @@ package shapes
 import (
     "customtools/ray"
     "customtools/space"
-    _"customtools/vec3"
-    _"log"
-    _"runtime"
-    _"math"
+    "customtools/vec3"
 )
 
 type Group struct {
@@ -18,8 +15,8 @@ func (this Group) Intersect(r ray.Ray) *space.Hit {
     
     var closestHit *space.Hit
     var h *space.Hit
-    // r2 := this.Transformation.TransformRayIn(r)
-    r2 := r
+    r2 := this.Transformation.TransformRayIn(r)
+    // r2 := r
     
     for _,shape := range this.Shapes {
         h = shape.Intersect(r2)
@@ -32,6 +29,8 @@ func (this Group) Intersect(r ray.Ray) *space.Hit {
         return nil
     }
     
+    this.Transformation.TransformHitOut(closestHit)
+
     // prev := vec3.Vec3{closestHit.Normal.X, closestHit.Normal.Y, closestHit.Normal.Z}
     
     // this.Transformation.TransformHitOut(closestHit)
@@ -50,4 +49,13 @@ func (this Group) Intersect(r ray.Ray) *space.Hit {
     // }
     
     return closestHit
+}
+
+func (this Group) Includes(point vec3.Vec3) bool {
+	for _,shape := range this.Shapes {
+        if shape.Includes(point) {
+            return true
+        }
+    }
+    return false
 }

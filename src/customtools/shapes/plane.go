@@ -40,3 +40,7 @@ func (this Plane) Intersect(r ray.Ray) *space.Hit {
 		Material:           this.Material,
 	}
 }
+
+func (this Plane) Includes(point vec3.Vec3) bool {
+	return false
+}
