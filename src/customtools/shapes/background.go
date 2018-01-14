@@ -12,6 +12,10 @@ type Background struct {
 }
 
 func (this Background) Intersect(r ray.Ray) *space.Hit {
+	if !math.IsInf(r.T1, 0) {
+		return nil
+	}
+
 	normal := vec3.Multiply(-1, r.Direction)
 
 	inclination := -math.Acos(normal.Y)
