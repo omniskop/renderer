@@ -22,12 +22,12 @@ func New(filename string, gamma float64) *ImageTexture {
 	out := ImageTexture{}
 	infile, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		panic("Error: There is no file with the name '" + filename + "'!")
 	}
 	defer infile.Close()
 	out.image, _, err = image.Decode(infile)
 	if err != nil {
-		panic(err)
+		panic("Error: The texture '" + filename + "' could not be decoded as an image.")
 	}
 	out.width = out.image.Bounds().Dx()
 	out.height = out.image.Bounds().Dy()
