@@ -3,7 +3,6 @@ package shapes
 import (
 	"customtools/ray"
 	"customtools/space"
-	"customtools/texture"
 	"customtools/vec3"
 )
 
@@ -32,7 +31,6 @@ func (this differenceGroup) Intersect(r ray.Ray) *space.Hit {
 	if hit == nil {
 		return nil
 	}
-	hit.Material = space.Material_Sky{texture.NewColor(1, 0, 0)}
 	if this.subtrahend.Includes(hit.Position) {
 		orignalT := hit.T
 		r.Origin = hit.Position

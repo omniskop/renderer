@@ -127,7 +127,7 @@ func main() {
 
 	log.Print("Rendering took ", time.Since(startTime))
 
-	err := img.Write("doc/b01.png")
+	err := img.Write("doc/b02.png")
 	if err != nil {
 		log.Print("An error occoured while writing the file.")
 		log.Fatal(err)
@@ -252,14 +252,14 @@ func calculateRadiance(scene shapes.Shape, light []lights.Light, renderRay ray.R
 	if scattered != nil {
 		depth--
 		if depth != 0 {
+			directLight := vec3.Vec3{0, 0, 0}
 			if _, ok := closestHit.Material.(space.Material_Diffuse); ok {
-				radiance = vec3.Clamp(vec3.Add(
-					lights.SampleLights(scene, light, closestHit),
-					calculateRadiance(scene, light, *scattered, depth),
-				))
-			} else {
-				radiance = calculateRadiance(scene, light, *scattered, depth)
+				directLight = lights.SampleLights(scene, light, closestHit)
 			}
+			radiance = vec3.Clamp(vec3.Add(
+				directLight,
+				calculateRadiance(scene, light, *scattered, depth),
+			))
 		}
 		return vec3.Add(
 			emission,
