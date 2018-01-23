@@ -45,7 +45,7 @@ func (this Material_Diffuse) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 }
 
 func (this Material_Diffuse) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
-	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y, h.SurfaceCoordinates.Z)
 }
 
 func (this Material_Diffuse) String() string { return "Material_Diffuse" }
@@ -93,7 +93,7 @@ type Material_WhiteLight struct {
 }
 
 func (this Material_WhiteLight) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
-	return this.Emission.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+	return this.Emission.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y, h.SurfaceCoordinates.Z)
 }
 
 func (this Material_WhiteLight) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
@@ -102,7 +102,7 @@ func (this Material_WhiteLight) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 }
 
 func (this Material_WhiteLight) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
-	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y, h.SurfaceCoordinates.Z)
 }
 
 func (this Material_WhiteLight) String() string { return "Material_WhiteLight" }
@@ -202,7 +202,7 @@ type Material_Sky struct {
 }
 
 func (this Material_Sky) EmittedRadiance(r ray.Ray, h Hit) vec3.Vec3 {
-	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y, h.SurfaceCoordinates.Z)
 }
 
 func (this Material_Sky) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
@@ -269,7 +269,7 @@ func (this Material_Transparent) ScatteredRay(r ray.Ray, h Hit) *ray.Ray {
 }
 
 func (this Material_Transparent) Albedo(r ray.Ray, h Hit) vec3.Vec3 {
-	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y)
+	return this.Texture.SamplePoint(h.SurfaceCoordinates.X, h.SurfaceCoordinates.Y, h.SurfaceCoordinates.Z)
 }
 
 func (this Material_Transparent) String() string { return "Material_Transparent" }

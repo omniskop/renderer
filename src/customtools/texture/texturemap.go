@@ -24,6 +24,6 @@ func NewScaledTexturemap(filename string, gamma float64, scaling float64) *textu
 	return &out
 }
 
-func (this *texturemap) SamplePoint(x, y float64) vec3.Vec3 {
+func (this *texturemap) SamplePoint(x, y, z float64) vec3.Vec3 {
 	return this.image.SamplePoint(x*this.scaling, y*this.scaling)
 }

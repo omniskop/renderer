@@ -16,6 +16,6 @@ func NewColor(r, g, b float64) *textureColor {
 	return &textureColor{vec3.Vec3{r, g, b}}
 }
 
-func (this *textureColor) SamplePoint(x, y float64) vec3.Vec3 {
+func (this *textureColor) SamplePoint(x, y, z float64) vec3.Vec3 {
 	return this.color
 }

@@ -86,24 +86,24 @@ func (this Cube) Intersect(r ray.Ray) *space.Hit {
 
 	if math.Abs(point.X-this.Position.X) < epislon {
 		normal = vec3.Vec3{-1, 0, 0}
-		surfaceCoordinates = vec3.Vec3{(point.Z - this.Position.Z) / this.Size.Z, (point.Y - this.Position.Y) / this.Size.Y, 0}
+		surfaceCoordinates = vec3.Vec3{(point.Z - this.Position.Z) / this.Size.Z, -(point.Y - this.Position.Y) / this.Size.Y, 1}
 	} else if math.Abs(point.X-max.X) < epislon {
 		normal = vec3.Vec3{1, 0, 0}
-		surfaceCoordinates = vec3.Vec3{-(point.Z - this.Position.Z) / this.Size.Z, (point.Y - this.Position.Y) / this.Size.Y, 0}
+		surfaceCoordinates = vec3.Vec3{-(point.Z - this.Position.Z) / this.Size.Z, -(point.Y - this.Position.Y) / this.Size.Y, 1}
 	} else {
 		if math.Abs(point.Y-this.Position.Y) < epislon {
 			normal = vec3.Vec3{0, -1, 0}
 			surfaceCoordinates = vec3.Vec3{(point.X - this.Position.X) / this.Size.X, (point.Z - this.Position.Z) / this.Size.Z, 0}
 		} else if math.Abs(point.Y-max.Y) < epislon {
 			normal = vec3.Vec3{0, 1, 0}
-			surfaceCoordinates = vec3.Vec3{-(point.X - this.Position.X) / this.Size.X, (point.Z - this.Position.Z) / this.Size.Z, 0}
+			surfaceCoordinates = vec3.Vec3{-(point.X - this.Position.X) / this.Size.X, (point.Z - this.Position.Z) / this.Size.Z, 2}
 		} else {
 			if math.Abs(point.Z-this.Position.Z) < epislon {
 				normal = vec3.Vec3{0, 0, -1}
-				surfaceCoordinates = vec3.Vec3{(point.X - this.Position.X) / this.Size.X, (point.Y - this.Position.Y) / this.Size.Y, 0}
+				surfaceCoordinates = vec3.Vec3{(point.X - this.Position.X) / this.Size.X, (point.Y - this.Position.Y) / this.Size.Y, 1}
 			} else if math.Abs(point.Z-max.Z) < epislon {
 				normal = vec3.Vec3{0, 0, 1}
-				surfaceCoordinates = vec3.Vec3{(point.X - this.Position.X) / this.Size.X, -(point.Y - this.Position.Y) / this.Size.Y, 0}
+				surfaceCoordinates = vec3.Vec3{(point.X - this.Position.X) / this.Size.X, -(point.Y - this.Position.Y) / this.Size.Y, 1}
 			} else {
 				panic("Unable to determine normal vector of cube. Try to increase epsilon.")
 			}
@@ -120,6 +120,7 @@ func (this Cube) Intersect(r ray.Ray) *space.Hit {
 		Normal:             normal,
 		SurfaceCoordinates: surfaceCoordinates,
 		Material:           this.Material,
+		IgnoreLight:        this.Size.X == 0.1,
 	}
 }
 
