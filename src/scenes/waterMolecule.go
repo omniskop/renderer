@@ -1,10 +1,10 @@
 package scenes
 
 import (
-	"customtools/shapes"
-	"customtools/space"
-	"customtools/texture"
-	"customtools/vec3"
+	"renderer/shapes"
+	"space"
+	"space/texture"
+	"vec3"
 )
 
 /*

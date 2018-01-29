@@ -1,13 +1,13 @@
 package scenes
 
 import (
-	"customtools/camera"
-	"customtools/lights"
-	"customtools/shapes"
-	"customtools/space"
-	"customtools/texture"
-	"customtools/vec3"
 	"math"
+	"renderer/camera"
+	"renderer/lights"
+	"renderer/shapes"
+	"space"
+	"space/texture"
+	"vec3"
 )
 
 func GetCubeTorusScene() shapes.Group {

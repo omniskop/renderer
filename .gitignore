@@ -1,8 +1,8 @@
 .DS_Store
-setgo.sh
-.atom-build.yml
 *_test.go
 *.prof
 *.mprof
 .vscode
 pkg/
+additional/
+renderings/

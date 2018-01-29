@@ -1,12 +1,12 @@
 package scenes
 
 import (
-	"customtools/camera"
-	"customtools/shapes"
-	"customtools/space"
-	"customtools/texture"
-	"customtools/vec3"
 	"math"
+	"renderer/camera"
+	"renderer/shapes"
+	"space"
+	"space/texture"
+	"vec3"
 )
 
 func GetHumanDnaScene() shapes.Group {
