@@ -1,158 +1,32 @@
-package main
+package renderer
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
-	"os"
 	"renderer/camera"
-	"renderer/image"
+
+	goImg "image"
+	"image/color"
 	"renderer/lights"
 	"renderer/shapes"
 	"runtime"
-	"runtime/pprof"
-	"scenes"
 	"space"
 	"space/ray"
-	"space/texture"
 	"sync"
-	"time"
 	"vec3"
 )
 
-var startTime time.Time
-
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-var memprofile = flag.String("memprofile", "", "write memory profile to this file")
-
-func main() {
-	flag.Parse()
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
-	startTime = time.Now()
-	rand.Seed(time.Now().UnixNano())
-
-	// sceneCamera := scenes.GetDnaSceneCamera()
-	sceneCamera := scenes.GetMinecraftSceneCamera()
-	// sceneCamera := scenes.GetHumanDnaCamera()
-
-	_ = scenes.GetWaterMolecule()
-	_ = space.NewTransformation
-	_ = sceneCamera
-	_ = texture.NewColor
-
-	//Standart Scenen
-	img := multithreadMagic(
-		camera.PinholeCamera{
-			Position:     sceneCamera.GetPosition(),
-			Direction:    sceneCamera.GetDirection(),
-			OpeningAngle: math.Pi / 2,
-			Width:        1280,
-			Height:       720,
-		},
-		scenes.GetMinecraftScene(),
-		scenes.GetMinecraftSceneLight(),
-		100,
-		10,
-	)
-
-	// Kamera tests
-	// img := multithreadMagic(
-	//     camera.PinholeCamera{
-	//         Position: vec3.Vec3{2,1,-10},
-	//         Direction: vec3.Normalize(vec3.Vec3{-0.4,-0.3,-1}),
-	//         Tilt: 0,
-	//         OpeningAngle: math.Pi / 7,
-	//         Width: 200,
-	//         Height: 200,
-	//     },
-	//     scenes.GetComparisonScene(),
-	//     100,
-	//     30,
-	// )
-
-	// Performance tests
-	// img := raytrace(
-	//     camera.PinholeCamera{
-	//         Position: sceneCamera.GetPosition(),
-	//         Direction: sceneCamera.GetDirection(),
-	//         OpeningAngle: sceneCamera.GetOpeningAngle(),
-	//         Width: 200,
-	//         Height: 200,
-	//     },
-	//     scenes.GetCylinderScene(),
-	//     300,
-	//     30,
-	// )
-
-	// scene tests
-	// img := multithreadMagic(
-	//     camera.PinholeCamera{
-	//             Position: vec3.Vec3{0,5,5},
-	//             Direction: vec3.Normalize(vec3.Vec3{0,-1,-1}),
-	//             OpeningAngle: math.Pi / 2,
-	//             Width: 400,
-	//             Height: 400,
-	//         },
-	//         shapes.Group{
-	//             space.NoTransformation(),
-	//             []shapes.Shape{
-	// 				shapes.Union(
-	// 					shapes.Sphere{
-	// 						vec3.Vec3{-0.5,0,0},
-	// 						1,
-	// 						space.Material_Diffuse{texture.NewColor(1,0,0)},
-	// 					},
-	// 					shapes.Sphere{
-	// 						vec3.Vec3{0.5,0,0},
-	// 						1,
-	// 						space.Material_Diffuse{texture.NewColor(0,0,1)},
-	// 					},
-	// 				),
-	// 				shapes.Background{space.Material_Sky{texture.NewColor(1,1,1)}},
-	// 			},
-	//         },
-	//         70,
-	//         2,
-	// )
-
-	log.Print("Rendering took ", time.Since(startTime))
-
-	err := img.Write("doc/cgg-competition-ws-17-859663.png")
-	if err != nil {
-		log.Print("An error occoured while writing the file.")
-		log.Fatal(err)
-	} else {
-		log.Print("File saved.")
-	}
-}
-
-func deg2rad(x float64) float64 {
-	return (x / 360) * math.Pi * 2
-}
-
-func multithreadMagic(cam camera.Camera, scene shapes.Shape, light []lights.Light, supersamplingPoints, depth int) image.Image {
-	// threads := runtime.NumCPU()
-	threads := 7
+func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamples int, depth int, threads int) goImg.Image {
 	runtime.GOMAXPROCS(threads)
-	log.Print(threads, " threads")
 
-	samplingPointsPerThread := supersamplingPoints / threads
-	log.Print(samplingPointsPerThread*threads, " sampling points")
-	log.Print(samplingPointsPerThread, " sampling points per thread")
+	samplingPointsPerThread := subsamples / threads
 
-	images := make([]image.Image, threads)
+	images := make([]goImg.Image, threads)
 
 	var wg sync.WaitGroup
-	channel := make(chan image.Image)
+	channel := make(chan goImg.Image)
 
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
@@ -165,38 +39,88 @@ func multithreadMagic(cam camera.Camera, scene shapes.Shape, light []lights.Ligh
 
 	wg.Wait()
 
-	finalImage := image.New(cam.GetWidth(), cam.GetHeight())
+	finalImage := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 
 	threadsFloat := float64(threads)
 	for x := 0; x < cam.GetWidth(); x++ {
 		for y := 0; y < cam.GetHeight(); y++ {
-			color := vec3.Black
+			c := vec3.Black
 			for _, img := range images {
-				color.Add(img.GetPixel(x, y))
+				r, g, b, _ := img.At(x, y).RGBA()
+				c.Add(vec3.Vec3{float64(r) / 65535, float64(g) / 65535, float64(b) / 65535})
 			}
-			finalImage.SetPixel(x, y, processColor(vec3.Divide(color, threadsFloat), 2.2))
+			c = processColor(vec3.Divide(c, threadsFloat), 2.2)
+			finalImage.Set(x, y, color.RGBA{uint8(c.X * 255), uint8(c.Y * 255), uint8(c.Z * 255), 255})
 		}
 	}
 
 	return finalImage
 }
 
-func renderThread(wg *sync.WaitGroup, out chan image.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int) {
+func deg2rad(x float64) float64 {
+	return (x / 360) * math.Pi * 2
+}
+
+func multithreadMagic(cam camera.Camera, scene shapes.Shape, light []lights.Light, supersamplingPoints, depth int) goImg.Image {
+	// threads := runtime.NumCPU()
+	threads := 20
+	runtime.GOMAXPROCS(threads)
+	log.Print(threads, " threads")
+
+	samplingPointsPerThread := supersamplingPoints / threads
+	log.Print(samplingPointsPerThread*threads, " sampling points")
+	log.Print(samplingPointsPerThread, " sampling points per thread")
+
+	images := make([]goImg.Image, threads)
+
+	var wg sync.WaitGroup
+	channel := make(chan goImg.Image)
+
+	for i := 0; i < threads; i++ {
+		wg.Add(1)
+		go renderThread(&wg, channel, cam, scene, light, samplingPointsPerThread, depth)
+	}
+
+	for i := 0; i < threads; i++ {
+		images[i] = <-channel
+	}
+
+	wg.Wait()
+
+	finalImage := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
+
+	threadsFloat := float64(threads)
+	for x := 0; x < cam.GetWidth(); x++ {
+		for y := 0; y < cam.GetHeight(); y++ {
+			c := vec3.Black
+			for _, img := range images {
+				r, g, b, _ := img.At(x, y).RGBA()
+				c.Add(vec3.Vec3{float64(r) / 65535, float64(g) / 65535, float64(b) / 65535})
+			}
+			c = processColor(vec3.Divide(c, threadsFloat), 2.2)
+			finalImage.Set(x, y, color.RGBA{uint8(c.X * 255), uint8(c.Y * 255), uint8(c.Z * 255), 255})
+		}
+	}
+
+	return finalImage
+}
+
+func renderThread(wg *sync.WaitGroup, out chan goImg.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int) {
 	img := raytrace(cam, scene, light, sPoints, depth)
 	out <- img
 	wg.Done()
 }
 
-func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int) image.Image {
-	img := image.New(cam.GetWidth(), cam.GetHeight())
+func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int) goImg.Image {
+	img := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 	pointPerPixelAxis := int(math.Sqrt(float64(sPoints)))
 	for x := 0; x < cam.GetWidth(); x++ {
 		for y := 0; y < cam.GetHeight(); y++ {
-			img.SetPixel(
+			img.Set(
 				x,
 				y,
 				// processColor(
-				getColorForPixel(shapes, cam, light, x, y, pointPerPixelAxis, depth),
+				getColorForPixel(shapes, cam, light, x, y, pointPerPixelAxis, depth).Color(),
 				// 2.2,
 				// ),
 

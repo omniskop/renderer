@@ -1,6 +1,7 @@
 package vec3
 
 import (
+	"image/color"
 	"math"
 )
 
@@ -81,6 +82,15 @@ func (v *Vec3) MultiplyByVec3(a Vec3) {
 	v.X *= a.X
 	v.Y *= a.Y
 	v.Z *= a.Z
+}
+
+func (v Vec3) Color() color.Color {
+	return color.RGBA{
+		uint8(v.X * 255),
+		uint8(v.Y * 255),
+		uint8(v.Z * 255),
+		255,
+	}
 }
 
 func Add(a Vec3, vecs ...Vec3) Vec3 {
