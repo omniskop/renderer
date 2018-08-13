@@ -2,12 +2,12 @@ package renderer
 
 import (
 	"fmt"
+	"image"
 	"math"
 	"math/rand"
 	"renderer/camera"
 	"time"
 
-	goImg "image"
 	"image/color"
 	"renderer/lights"
 	"renderer/shapes"
@@ -29,16 +29,16 @@ func newRenderMeta() *renderMeta {
 }
 
 // Render an image
-func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamples int, depth int, threads int) goImg.Image {
+func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamples int, depth int, threads int) image.Image {
 	runtime.GOMAXPROCS(threads)
 
 	samplingPointsPerThread := subsamples / threads
 
-	images := make([]goImg.Image, threads)
+	images := make([]image.Image, threads)
 	renderMetas := make([]*renderMeta, threads)
 
 	var wg sync.WaitGroup
-	channel := make(chan goImg.Image)
+	channel := make(chan image.Image)
 
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
@@ -57,7 +57,7 @@ func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamp
 
 	progressStop <- true
 
-	finalImage := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
+	finalImage := image.NewRGBA(image.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 
 	threadsFloat := float64(threads)
 	for x := 0; x < cam.GetWidth(); x++ {
@@ -101,14 +101,14 @@ func deg2rad(x float64) float64 {
 	return (x / 360) * math.Pi * 2
 }
 
-func renderThread(wg *sync.WaitGroup, out chan goImg.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) {
+func renderThread(wg *sync.WaitGroup, out chan image.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) {
 	img := raytrace(cam, scene, light, sPoints, depth, meta)
 	out <- img
 	wg.Done()
 }
 
-func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) goImg.Image {
-	img := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
+func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 	pointPerPixelAxis := int(math.Sqrt(float64(sPoints)))
 	for x := 0; x < cam.GetWidth(); x++ {
 		for y := 0; y < cam.GetHeight(); y++ {
