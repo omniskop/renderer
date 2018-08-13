@@ -2,12 +2,12 @@ package shapes
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"space"
 	"vec3"
 )
 
+// Torus represents a torus
 type Torus struct {
 	Position vec3.Vec3
 	Radius   float64
@@ -48,7 +48,7 @@ func s(x float64, i int) {
 	m := (x+b)*x*x*x + c*x*x + d*x + e
 	// if (m == 0 | i == 99)  printf("z= %f x= %f y= %f iteration %d\n", z,x,m,i);
 	if m == 0 || i == 99 {
-		log.Printf("z= %f x= %f y= %f iteration %d\n", z, x, m, i)
+		fmt.Printf("z= %f x= %f y= %f iteration %d\n", z, x, m, i)
 	} else {
 		s(x-m/(4*x*x*x+j*x*x+k*k+l), i+1)
 	}
@@ -96,8 +96,8 @@ func tmain() {
 		//u and v indicate which of the stationary points are highest and lowest.
 		//solve dy/dx, store the roots in r[1,2,3] and the y values in r[5,6,7].
 		// int u=0,v=0,g;
-		var u int = 0
-		var v int = 0
+		var u int
+		var v int
 		var g int
 		// for (g = 1; g < 4; g++){
 		for g = 1; g < 4; g++ {
@@ -142,7 +142,7 @@ func tmain() {
 
 		// if (r[v+4] >0) printf("n\n");
 		if r[v+4] > 0 {
-			log.Print("n\n")
+			fmt.Print("n\n")
 		}
 		// if (r[v+4]==0) printf("z= %f x= %f multiple root", z,r[v]);
 		if r[v+4] == 0 {

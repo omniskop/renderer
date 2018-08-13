@@ -8,12 +8,14 @@ import (
 
 // ======  UNION  ======
 
+// Union combines the geometry of multiple shapes
 func Union(elements ...Shape) Shape {
 	return Group{space.NoTransformation(), elements}
 }
 
 // ======  DIFFERENCE  ======
 
+// Difference substracts the geometry multiple shapes from a single shape
 func Difference(mainShape Shape, shapes ...Shape) Shape {
 	return differenceGroup{
 		minuend:    mainShape,
@@ -26,20 +28,21 @@ type differenceGroup struct {
 	subtrahend Shape
 }
 
-func (this differenceGroup) Intersect(r ray.Ray) *space.Hit {
-	hit := this.minuend.Intersect(r)
+// Intersect returns the first hit of a ray with the object
+func (diffGroup differenceGroup) Intersect(r ray.Ray) *space.Hit {
+	hit := diffGroup.minuend.Intersect(r)
 	if hit == nil {
 		return nil
 	}
-	if this.subtrahend.Includes(hit.Position) {
+	if diffGroup.subtrahend.Includes(hit.Position) {
 		orignalT := hit.T
 		r.Origin = hit.Position
 		// r.T0 = 0.1
-		hit = this.subtrahend.Intersect(r)
+		hit = diffGroup.subtrahend.Intersect(r)
 		if hit == nil { // Should not happen. But it can when t.T0 is not 0
 			return nil
 		}
-		if !this.minuend.Includes(hit.Position) {
+		if !diffGroup.minuend.Includes(hit.Position) {
 			return nil
 		}
 		hit.Normal = vec3.Multiply(-1, hit.Normal)
@@ -48,12 +51,14 @@ func (this differenceGroup) Intersect(r ray.Ray) *space.Hit {
 	return hit
 }
 
-func (this differenceGroup) Includes(point vec3.Vec3) bool {
-	return this.minuend.Includes(point) && !this.subtrahend.Includes(point)
+// Includes checks if the point is inside the object
+func (diffGroup differenceGroup) Includes(point vec3.Vec3) bool {
+	return diffGroup.minuend.Includes(point) && !diffGroup.subtrahend.Includes(point)
 }
 
 // ======  INTERSECTION  ======
 
+// Intersection represents an and on all shape geometry
 func Intersection(shapes ...Shape) Shape {
 	return intersectionGroup{
 		shapes: shapes,
@@ -64,11 +69,12 @@ type intersectionGroup struct {
 	shapes []Shape
 }
 
-func (this intersectionGroup) Intersect(r ray.Ray) *space.Hit {
-	var furthestHit *space.Hit = nil
+// Intersect returns the first hit of a ray with the object
+func (intGroup intersectionGroup) Intersect(r ray.Ray) *space.Hit {
+	var furthestHit *space.Hit
 	var h *space.Hit
 
-	for _, shape := range this.shapes {
+	for _, shape := range intGroup.shapes {
 		h = shape.Intersect(r)
 		if h == nil {
 			return nil
@@ -81,8 +87,9 @@ func (this intersectionGroup) Intersect(r ray.Ray) *space.Hit {
 	return furthestHit
 }
 
-func (this intersectionGroup) Includes(point vec3.Vec3) bool {
-	for _, shape := range this.shapes {
+// Includes checks if the point is inside the object
+func (intGroup intersectionGroup) Includes(point vec3.Vec3) bool {
+	for _, shape := range intGroup.shapes {
 		if !shape.Includes(point) {
 			return false
 		}

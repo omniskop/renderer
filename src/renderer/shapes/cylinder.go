@@ -6,6 +6,7 @@ import (
 	"vec3"
 )
 
+// Cylinder represents a cylinder
 type Cylinder struct {
 	Position vec3.Vec3
 	Normal   vec3.Vec3
@@ -14,9 +15,10 @@ type Cylinder struct {
 	Material space.Material
 	disc1    Disc
 	disc2    Disc
-	walls    hollowCylinder
+	walls    HollowCylinder
 }
 
+// NewCylinder creates and returns a new cyliner
 func NewCylinder(position, normal vec3.Vec3, radius, height float64, material space.Material) Cylinder {
 	out := Cylinder{Position: position, Normal: normal, Radius: radius, Height: height, Material: material}
 	out.disc1 = Disc{position, vec3.Multiply(-1, normal), radius, material}
@@ -26,43 +28,46 @@ func NewCylinder(position, normal vec3.Vec3, radius, height float64, material sp
 	return out
 }
 
-func (this Cylinder) Intersect(r ray.Ray) *space.Hit {
-	if vec3.DotProduct(this.disc1.Normal, r.Direction) < 0 {
-		disc1Hit := this.disc1.Intersect(r)
+// Intersect returns the first hit of a ray with the object
+func (cylinder Cylinder) Intersect(r ray.Ray) *space.Hit {
+	if vec3.DotProduct(cylinder.disc1.Normal, r.Direction) < 0 {
+		disc1Hit := cylinder.disc1.Intersect(r)
 
 		if disc1Hit != nil {
 			return disc1Hit
 		}
 	}
-	if vec3.DotProduct(this.disc2.Normal, r.Direction) < 0 {
-		disc2Hit := this.disc2.Intersect(r)
+	if vec3.DotProduct(cylinder.disc2.Normal, r.Direction) < 0 {
+		disc2Hit := cylinder.disc2.Intersect(r)
 		if disc2Hit != nil {
 			return disc2Hit
 		}
 	}
 
-	cylinderHit := this.walls.Intersect(r)
+	cylinderHit := cylinder.walls.Intersect(r)
 
 	return cylinderHit
 }
 
-func (this Cylinder) Includes(point vec3.Vec3) bool {
-	xAxis := vec3.Normalize(vec3.CrossProduct(this.Normal, vec3.Add(vec3.Vec3{1, 1, 1}, this.Normal))) // The Add creates a new vector that can't be equal to the normal vector
-	yAxis := vec3.Normalize(vec3.CrossProduct(this.Normal, xAxis))
-	positionToOrigin := vec3.Subtract(point, this.Position)
+// Includes checks if the point is inside the object
+func (cylinder Cylinder) Includes(point vec3.Vec3) bool {
+	xAxis := vec3.Normalize(vec3.CrossProduct(cylinder.Normal, vec3.Add(vec3.Vec3{1, 1, 1}, cylinder.Normal))) // The Add creates a new vector that can't be equal to the normal vector
+	yAxis := vec3.Normalize(vec3.CrossProduct(cylinder.Normal, xAxis))
+	positionToOrigin := vec3.Subtract(point, cylinder.Position)
 
 	projectedOrigin := vec3.Add(
 		vec3.Project(positionToOrigin, xAxis),
 		vec3.Project(positionToOrigin, yAxis),
 	)
 
-	if projectedOrigin.SquaredLength() > this.Radius*this.Radius {
+	if projectedOrigin.SquaredLength() > cylinder.Radius*cylinder.Radius {
 		return false
 	}
 	return true
 }
 
-type hollowCylinder struct {
+// HollowCylinder represents a cylinder without caps
+type HollowCylinder struct {
 	Position        vec3.Vec3
 	Normal          vec3.Vec3
 	Radius          float64
@@ -71,8 +76,9 @@ type hollowCylinder struct {
 	collisionSphere Sphere
 }
 
-func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, material space.Material) hollowCylinder {
-	out := hollowCylinder{Position: position, Normal: normal, Radius: radius, Height: height, Material: material}
+// NewHollowCylinder creates and returns a new hollow cylinder
+func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, material space.Material) HollowCylinder {
+	out := HollowCylinder{Position: position, Normal: normal, Radius: radius, Height: height, Material: material}
 	out.collisionSphere = Sphere{
 		Position: vec3.Vec3{0, 0, 0},
 		Radius:   radius,
@@ -80,15 +86,16 @@ func NewHollowCylinder(position, normal vec3.Vec3, radius, height float64, mater
 	return out
 }
 
-func (this hollowCylinder) Intersect(r ray.Ray) *space.Hit {
-	xAxis := vec3.Normalize(vec3.CrossProduct(this.Normal, r.Direction)) // Durch die Direction kann man sich eine Projektion für die Richtung spaaren
+// Intersect returns the first hit of a ray with the object
+func (cylinder HollowCylinder) Intersect(r ray.Ray) *space.Hit {
+	xAxis := vec3.Normalize(vec3.CrossProduct(cylinder.Normal, r.Direction)) // Durch die Direction kann man sich eine Projektion für die Richtung spaaren
 	if xAxis.Equals(vec3.Zero) {
-		// Happens when this.Normal and r.Direction are equal.
+		// Happens when cylinder.Normal and r.Direction are equal.
 		// This is very unlikely but it can happen and will completly blackout the image
 		return nil
 	}
-	yAxis := vec3.Normalize(vec3.CrossProduct(this.Normal, xAxis))
-	positionToOrigin := vec3.Subtract(r.Origin, this.Position)
+	yAxis := vec3.Normalize(vec3.CrossProduct(cylinder.Normal, xAxis))
+	positionToOrigin := vec3.Subtract(r.Origin, cylinder.Position)
 
 	projectedOrigin := vec3.Add(
 		vec3.Project(positionToOrigin, xAxis),
@@ -111,7 +118,7 @@ func (this hollowCylinder) Intersect(r ray.Ray) *space.Hit {
 		r.T1,
 	}
 
-	projectedHit := this.collisionSphere.Intersect(projectedRay)
+	projectedHit := cylinder.collisionSphere.Intersect(projectedRay)
 
 	if projectedHit == nil {
 		return nil
@@ -122,14 +129,14 @@ func (this hollowCylinder) Intersect(r ray.Ray) *space.Hit {
 
 	point := r.PointAt(scaledT)
 
-	positionToPoint := vec3.Subtract(point, this.Position)
+	positionToPoint := vec3.Subtract(point, cylinder.Position)
 	// "beneath" the cylinder
-	if vec3.DotProduct(positionToPoint, this.Normal) < 0 {
+	if vec3.DotProduct(positionToPoint, cylinder.Normal) < 0 {
 		return nil
 	}
-	positionToPointProjectedOnNormalSquaredLength := positionToPoint.SquaredLength() - this.Radius*this.Radius
+	positionToPointProjectedOnNormalSquaredLength := positionToPoint.SquaredLength() - cylinder.Radius*cylinder.Radius
 	// "above" the cylinder
-	if positionToPointProjectedOnNormalSquaredLength > this.Height*this.Height {
+	if positionToPointProjectedOnNormalSquaredLength > cylinder.Height*cylinder.Height {
 		return nil
 	}
 
@@ -137,13 +144,14 @@ func (this hollowCylinder) Intersect(r ray.Ray) *space.Hit {
 		T:        scaledT,
 		Position: point,
 		Normal:   projectedHit.Normal,
-		Material: this.Material,
+		Material: cylinder.Material,
 		// Material: Material_Diffuse{
 		//     projectedHit.Normal,
 		// },
 	}
 }
 
-func (this hollowCylinder) Includes(point vec3.Vec3) bool {
+// Includes checks if the point is inside the object
+func (cylinder HollowCylinder) Includes(point vec3.Vec3) bool {
 	return false
 }

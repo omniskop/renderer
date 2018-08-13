@@ -2,10 +2,10 @@ package renderer
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
 	"renderer/camera"
+	"time"
 
 	goImg "image"
 	"image/color"
@@ -18,26 +18,44 @@ import (
 	"vec3"
 )
 
+type renderMeta struct {
+	progress float32
+}
+
+func newRenderMeta() *renderMeta {
+	return &renderMeta{
+		progress: 0,
+	}
+}
+
+// Render an image
 func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamples int, depth int, threads int) goImg.Image {
 	runtime.GOMAXPROCS(threads)
 
 	samplingPointsPerThread := subsamples / threads
 
 	images := make([]goImg.Image, threads)
+	renderMetas := make([]*renderMeta, threads)
 
 	var wg sync.WaitGroup
 	channel := make(chan goImg.Image)
 
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
-		go renderThread(&wg, channel, cam, scene, light, samplingPointsPerThread, depth)
+		renderMetas[i] = newRenderMeta()
+		go renderThread(&wg, channel, cam, scene, light, samplingPointsPerThread, depth, renderMetas[i])
 	}
+
+	progressStop := make(chan bool)
+	go progressPrinter(renderMetas, progressStop)
 
 	for i := 0; i < threads; i++ {
 		images[i] = <-channel
 	}
 
 	wg.Wait()
+
+	progressStop <- true
 
 	finalImage := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 
@@ -55,63 +73,41 @@ func Render(cam camera.Camera, scene shapes.Group, light []lights.Light, subsamp
 	}
 
 	return finalImage
+}
+
+func progressPrinter(metas []*renderMeta, stop chan bool) {
+	ticker := time.NewTicker(1 * time.Second)
+	// fmt.Print("\n")
+	for {
+		select {
+		case <-stop:
+			ticker.Stop()
+			// fmt.Print("\r\n")
+			return
+		case <-ticker.C:
+			var progress float32
+			for _, meta := range metas {
+				// i know this is a data race
+				progress += meta.progress
+			}
+
+			progress /= float32(len(metas))
+			fmt.Printf("\rRendering... %d%%", int(progress*100))
+		}
+	}
 }
 
 func deg2rad(x float64) float64 {
 	return (x / 360) * math.Pi * 2
 }
 
-func multithreadMagic(cam camera.Camera, scene shapes.Shape, light []lights.Light, supersamplingPoints, depth int) goImg.Image {
-	// threads := runtime.NumCPU()
-	threads := 20
-	runtime.GOMAXPROCS(threads)
-	log.Print(threads, " threads")
-
-	samplingPointsPerThread := supersamplingPoints / threads
-	log.Print(samplingPointsPerThread*threads, " sampling points")
-	log.Print(samplingPointsPerThread, " sampling points per thread")
-
-	images := make([]goImg.Image, threads)
-
-	var wg sync.WaitGroup
-	channel := make(chan goImg.Image)
-
-	for i := 0; i < threads; i++ {
-		wg.Add(1)
-		go renderThread(&wg, channel, cam, scene, light, samplingPointsPerThread, depth)
-	}
-
-	for i := 0; i < threads; i++ {
-		images[i] = <-channel
-	}
-
-	wg.Wait()
-
-	finalImage := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
-
-	threadsFloat := float64(threads)
-	for x := 0; x < cam.GetWidth(); x++ {
-		for y := 0; y < cam.GetHeight(); y++ {
-			c := vec3.Black
-			for _, img := range images {
-				r, g, b, _ := img.At(x, y).RGBA()
-				c.Add(vec3.Vec3{float64(r) / 65535, float64(g) / 65535, float64(b) / 65535})
-			}
-			c = processColor(vec3.Divide(c, threadsFloat), 2.2)
-			finalImage.Set(x, y, color.RGBA{uint8(c.X * 255), uint8(c.Y * 255), uint8(c.Z * 255), 255})
-		}
-	}
-
-	return finalImage
-}
-
-func renderThread(wg *sync.WaitGroup, out chan goImg.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int) {
-	img := raytrace(cam, scene, light, sPoints, depth)
+func renderThread(wg *sync.WaitGroup, out chan goImg.Image, cam camera.Camera, scene shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) {
+	img := raytrace(cam, scene, light, sPoints, depth, meta)
 	out <- img
 	wg.Done()
 }
 
-func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int) goImg.Image {
+func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoints, depth int, meta *renderMeta) goImg.Image {
 	img := goImg.NewRGBA(goImg.Rect(0, 0, cam.GetWidth(), cam.GetHeight()))
 	pointPerPixelAxis := int(math.Sqrt(float64(sPoints)))
 	for x := 0; x < cam.GetWidth(); x++ {
@@ -119,20 +115,12 @@ func raytrace(cam camera.Camera, shapes shapes.Shape, light []lights.Light, sPoi
 			img.Set(
 				x,
 				y,
-				// processColor(
 				getColorForPixel(shapes, cam, light, x, y, pointPerPixelAxis, depth).Color(),
-				// 2.2,
-				// ),
-
 			)
 		}
-		percent := (float64(x) / float64(cam.GetWidth())) * 100
-		if percent == math.Trunc(percent) {
-			fmt.Printf("\rRendering... %d%%", int(percent))
-		}
+		percent := float32(x) / float32(cam.GetWidth())
+		meta.progress = percent
 	}
-
-	fmt.Printf("\n")
 
 	return img
 }
@@ -163,7 +151,7 @@ func calculateRadiance(scene shapes.Shape, light []lights.Light, renderRay ray.R
 	radiance := vec3.Zero
 
 	if closestHit == nil {
-		log.Print("Sollte nicht passieren.")
+		fmt.Println("Sollte nicht passieren.")
 		return radiance
 	}
 
@@ -202,35 +190,12 @@ func calculateRadiance2(scene shapes.Shape, light []lights.Light, renderRay ray.
 	for i := 0; i < depth; i++ {
 		closestHit := scene.Intersect(*currentRay)
 		if closestHit == nil {
-			log.Print("Sollte nicht passieren.")
+			fmt.Println("Sollte nicht passieren.")
 			break
 		}
 
-		// a, e := closestHit.Material.(space.Material_Diffuse)
-		// if e && a.Color.Equals(vec3.Vec3{1,0,0}) && closestHit.Normal.Y < -000.1 {
-		// if closestHit.Normal.Y < 0 && true {
-		// log.Print("Affensalat! ", closestHit.Normal)
-
-		// value.Add(vec3.Vec3{0,0,1})
-		// return value
-
-		// runtime.Breakpoint()
-		// value.Add(vec3.MultiplyByVec3(add, vec3.Vec3{.5,0,1}))
-		// break;
-		// }
-
 		emission := closestHit.Material.EmittedRadiance(*currentRay, *closestHit)
-		// c := closestHit.Position.Y / 1
-		// if c < 0 {
-		//     c = 0
-		// }
-		// emission := vec3.Vec3{c,c,c}
 		currentRay = closestHit.Material.ScatteredRay(*currentRay, *closestHit)
-
-		// currentRay = nil
-		// v := closestHit.T * 10
-		// // v = 10 - (v/10)*10
-		// emission = vec3.Vec3{v, v, v}
 
 		emission = vec3.Add(emission, lights.SampleLights(scene, light, closestHit))
 

@@ -1,7 +1,6 @@
 package camera
 
 import (
-	"log"
 	"mat4"
 	"math"
 	"space/ray"
@@ -54,9 +53,6 @@ func (this PinholeCamera) GetRayForPixel(x float64, y float64) ray.Ray {
 	// horizontalRotationAxis := vec3.Vec3{0,1,0}
 	// heightRotationAxis := vec3.CrossProduct(c.Direction, vec3.Vec3{0,1,0})
 	// heightRotationAxis := vec3.Vec3{1,0,0}
-
-	_ = log.Print
-	//log.Print(transformationMatrix)
 
 	cameraPosition := transformationMatrix.TransformPoint(vec3.Vec3{0, 0, 0})
 	cameraDirection := transformationMatrix.TransformDirection(dir)

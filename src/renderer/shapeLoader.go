@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"renderer/shapes"
@@ -14,21 +15,21 @@ import (
 
 var parserOptions = gwob.ObjParserOptions{
 	LogStats:      false,
-	Logger:        func(a string) { log.Print(a) },
+	Logger:        func(a string) { fmt.Println(a) },
 	IgnoreNormals: false,
 }
 
 func loadShapeFile(name string, path string) shapes.Group {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Print("An error occoured while reading an obj shapeFile. (" + name + ";" + path + ")")
+		fmt.Print("An error occoured while reading an obj shapeFile. (" + name + ";" + path + ")")
 		log.Fatal(err)
 	}
 	defer file.Close()
 	reader := bufio.NewReader(file)
 	object, err := gwob.NewObjFromReader(name, reader, &parserOptions)
 	if err != nil {
-		log.Print("An error occoured while parsing an obj shapeFile. (" + name + ";" + path + ")")
+		fmt.Print("An error occoured while parsing an obj shapeFile. (" + name + ";" + path + ")")
 		log.Fatal(err)
 	}
 

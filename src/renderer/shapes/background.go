@@ -7,11 +7,13 @@ import (
 	"vec3"
 )
 
+// Background represents the background of the scene
 type Background struct {
 	Material space.Material
 }
 
-func (this Background) Intersect(r ray.Ray) *space.Hit {
+// Intersect returns the first hit of a ray with the object
+func (bg Background) Intersect(r ray.Ray) *space.Hit {
 	if !math.IsInf(r.T1, 0) {
 		return nil
 	}
@@ -28,10 +30,11 @@ func (this Background) Intersect(r ray.Ray) *space.Hit {
 		// Normal: vec3.Vec3{0,1,0},
 		SurfaceCoordinates: vec3.Vec3{u, v, 0},
 		Position:           r.PointAt(math.Inf(1)),
-		Material:           this.Material,
+		Material:           bg.Material,
 	}
 }
 
-func (this Background) Includes(point vec3.Vec3) bool {
+// Includes checks if the point is inside the object
+func (bg Background) Includes(point vec3.Vec3) bool {
 	return false
 }

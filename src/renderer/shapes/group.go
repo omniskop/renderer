@@ -6,19 +6,21 @@ import (
 	"vec3"
 )
 
+// Group groups multiple shapes
 type Group struct {
 	Transformation space.Transformation
 	Shapes         []Shape
 }
 
-func (this Group) Intersect(r ray.Ray) *space.Hit {
+// Intersect returns the first hit of a ray with the object
+func (group Group) Intersect(r ray.Ray) *space.Hit {
 
 	var closestHit *space.Hit
 	var h *space.Hit
-	r2 := this.Transformation.TransformRayIn(r)
+	r2 := group.Transformation.TransformRayIn(r)
 	// r2 := r
 
-	for _, shape := range this.Shapes {
+	for _, shape := range group.Shapes {
 		h = shape.Intersect(r2)
 		if h != nil && (closestHit == nil || h.T < closestHit.T) {
 			closestHit = h
@@ -29,30 +31,14 @@ func (this Group) Intersect(r ray.Ray) *space.Hit {
 		return nil
 	}
 
-	this.Transformation.TransformHitOut(closestHit)
-
-	// prev := vec3.Vec3{closestHit.Normal.X, closestHit.Normal.Y, closestHit.Normal.Z}
-
-	// this.Transformation.TransformHitOut(closestHit)
-
-	// if len(this.Shapes) == 2 && closestHit.Position.X == math.Inf(1) {
-	//     runtime.Breakpoint()
-	// }
-	//
-	// if false && len(this.Shapes) == 2 && closestHit.Normal.Equals(vec3.Vec3{-0,-1,-0}) {
-	//     log.Print("There they are ", prev, closestHit.Material)
-	// }
-	//
-	// _, e := closestHit.Material.(space.Material_Diffuse)
-	// if false && len(this.Shapes) == 1 && e && r.PointAt(closestHit.T).Y < -0.01 {
-	//     log.Print("Der Übeltäter ")
-	// }
+	group.Transformation.TransformHitOut(closestHit)
 
 	return closestHit
 }
 
-func (this Group) Includes(point vec3.Vec3) bool {
-	for _, shape := range this.Shapes {
+// Includes checks if the point is inside the object
+func (group Group) Includes(point vec3.Vec3) bool {
+	for _, shape := range group.Shapes {
 		if shape.Includes(point) {
 			return true
 		}

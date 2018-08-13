@@ -1,7 +1,6 @@
 package space
 
 import (
-	"log"
 	"mat4"
 	"space/ray"
 	"vec3"
@@ -77,11 +76,6 @@ func (this *Transformation) TransformHitOut(h *Hit) {
 	if !this.enabled {
 		return
 	}
-
-	_ = log.Print
-	// if h.Normal.Y == 1 {
-	//     log.Print("Rollmops")
-	// }
 
 	// h.Position = this.matrix.TransformPoint(h.Position)
 	h.Position = this.negatedMatrix.TransformPoint(h.Position)

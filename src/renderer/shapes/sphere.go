@@ -7,12 +7,14 @@ import (
 	"vec3"
 )
 
+// Sphere represents a sphere
 type Sphere struct {
 	Position vec3.Vec3
 	Radius   float64
 	Material space.Material
 }
 
+// Intersect returns the first hit of a ray with the object
 func (s Sphere) Intersect(r ray.Ray) *space.Hit {
 	/*
 	   a = d^2
@@ -56,9 +58,8 @@ func (s Sphere) Intersect(r ray.Ray) *space.Hit {
 		if t1 < r.T0 || t1 > r.T1 {
 			if t2 < r.T0 || t2 > r.T1 {
 				return nil
-			} else {
-				offset = t2
 			}
+			offset = t2
 		} else {
 			if t2 < r.T0 || t2 > r.T1 {
 				offset = t1
@@ -69,10 +70,6 @@ func (s Sphere) Intersect(r ray.Ray) *space.Hit {
 	}
 
 	point := r.PointAt(offset)
-
-	// if math.Abs(vec3.Subtract(point, s.Position).Length() - s.Radius) > 0.000000001 {
-	//     log.Print("error (ray.Direction normalized?) ", offset, " ",vec3.Subtract(point, s.Position).Length() )
-	// }
 
 	normal := vec3.Divide(vec3.Subtract(point, s.Position), s.Radius)
 
@@ -90,6 +87,7 @@ func (s Sphere) Intersect(r ray.Ray) *space.Hit {
 	}
 }
 
-func (this Sphere) Includes(point vec3.Vec3) bool {
-	return vec3.Subtract(point, this.Position).SquaredLength() <= this.Radius
+// Includes checks if the point is inside the object
+func (s Sphere) Includes(point vec3.Vec3) bool {
+	return vec3.Subtract(point, s.Position).SquaredLength() <= s.Radius
 }

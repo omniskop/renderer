@@ -69,8 +69,8 @@ func main() {
 			Position:     vec3.Vec3{0, 0, 6},
 			Direction:    vec3.Normalize(vec3.Vec3{0, 0, -1}),
 			OpeningAngle: math.Pi / 4,
-			Width:        500,
-			Height:       500,
+			Width:        100,
+			Height:       100,
 		},
 		shapes.Group{
 			space.NoTransformation(),
@@ -81,12 +81,12 @@ func main() {
 			},
 		},
 		[]lights.Light{},
-		20,
-		2,
+		100,
+		5,
 		8,
 	)
 
-	log.Print("Rendering took ", time.Since(startTime))
+	fmt.Println("Rendering took ", time.Since(startTime))
 
 	file, err := os.Create("renderings/out.png")
 	if err != nil {
